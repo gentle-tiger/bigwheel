@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+### md, json 파일 제외 ###
+*.md
+*.json
