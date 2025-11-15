@@ -1,13 +1,19 @@
-package com.game.bigwheel;
+package com.game.bigwheel.domain.bigwheel;
 
-import com.game.bigwheel.user.User;
+import com.game.bigwheel.domain.user.User;
 import jakarta.persistence.*;
-import java.sql.Timestamp;
-import lombok.Getter;
+import java.time.LocalDateTime;
+import java.util.Map;
+import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Entity
 @Table(name ="p_bigwheel_games")
+@NoArgsConstructor // 기본 생성자
+@AllArgsConstructor // Builder
+@Builder
 public class Bigwheel {
 
   @Id
@@ -15,12 +21,13 @@ public class Bigwheel {
   private Long gameId;
 
   @ManyToOne(fetch = FetchType.LAZY) // 지연로딩 (성능)
-  @JoinColumn(nullable = false)
-  private User userId;
+  @JoinColumn(name ="user_id" ,nullable = false)
+  private User user;
 
 
   @Column(nullable = false, columnDefinition = "jsonb") // JSON 문자열로 저장
-  private BetZone betDetails; // 모든 베팅 구역 상세
+  @JdbcTypeCode(SqlTypes.JSON)
+  private Map<String, Long> betDetails; // 모든 베팅 구역 상세
 
   @Column(nullable = false)
   private String resultSector; // 당첨구역
@@ -32,9 +39,9 @@ public class Bigwheel {
   private Long  winningAmount; // 당첨금
 
   @Column(nullable = false)
-  private Long newProfit; // 순이익
+  private Long netProfit; // 순이익
 
-  private Timestamp playedAt; // 게임 날짜
+  private LocalDateTime playedAt; // 게임 날짜
 
 }
 

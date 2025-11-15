@@ -1,4 +1,4 @@
-package com.game.bigwheel.user;
+package com.game.bigwheel.domain.user;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

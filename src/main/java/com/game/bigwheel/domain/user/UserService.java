@@ -1,4 +1,4 @@
-package com.game.bigwheel.user;
+package com.game.bigwheel.domain.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
