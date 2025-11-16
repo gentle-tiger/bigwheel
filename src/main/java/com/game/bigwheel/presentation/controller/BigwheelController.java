@@ -44,21 +44,23 @@ public class BigwheelController {
   * api: GET /api/games
    */
   @GetMapping
-  public ResponseEntity<List<Bigwheel>> getAllGames(){
+  public ResponseEntity<List<GameResponse>> getAllGames(){
     log.info("전체 게임 조회 요청");
     List<Bigwheel> games = bigwheelService.getAllGames();
-    return ResponseEntity.ok(games);
+    List<GameResponse> gameResponseList = games.stream().map(GameResponse:: from).toList();
+    return ResponseEntity.ok(gameResponseList);
   }
 
   /*
-  * method: 특정 사용자의 게임 조회
-  * GET /api/games/{id}
+  * method: 사용자별 전체 게임 조회
+  * GET /api/games/{userId}
   * */
-  @GetMapping(value ="/{id}")
-  public ResponseEntity<List<Bigwheel>> getGameById(@PathVariable Long userId){
+  @GetMapping(value ="/{userId}")
+  public ResponseEntity<List<GameResponse>> getGameById(@PathVariable Long userId){
     log.info("사용자 게임 조회 요청: userId={}", userId);
     List<Bigwheel> games = bigwheelService.getUserGames(userId);
-    return ResponseEntity.ok(games);
+    List<GameResponse> gameResponseList = games.stream().map(GameResponse:: from).toList();
+    return ResponseEntity.ok(gameResponseList);
   }
 
 }
