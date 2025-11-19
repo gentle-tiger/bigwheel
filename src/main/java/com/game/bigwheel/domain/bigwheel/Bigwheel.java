@@ -27,7 +27,7 @@ public class Bigwheel {
 
   @Column(nullable = false, columnDefinition = "jsonb") // JSON 문자열로 저장
   @JdbcTypeCode(SqlTypes.JSON)
-  private Map<String, Long> betDetails; // 모든 베팅 구역 상세
+  private Map<String, Map<String, Integer>> betDetails; // 모든 베팅 구역 상세, Map<BetZone명, Map<ChipType명, 개수>>
 
   @Column(nullable = false)
   private String resultSector; // 당첨구역

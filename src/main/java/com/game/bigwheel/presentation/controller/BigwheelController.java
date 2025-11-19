@@ -1,10 +1,13 @@
 package com.game.bigwheel.presentation.controller;
 
 import com.game.bigwheel.application.BigwheelService;
+import com.game.bigwheel.domain.bigwheel.BetZone;
 import com.game.bigwheel.domain.bigwheel.Bigwheel;
-import com.game.bigwheel.presentation.dto.GameRequest;
-import com.game.bigwheel.presentation.dto.GameResponse;
+import com.game.bigwheel.presentation.dto.BetZoneResponse;
+import com.game.bigwheel.presentation.dto.GameSpinRequest;
+import com.game.bigwheel.presentation.dto.GameSpinResponse;
 import jakarta.validation.Valid;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,12 +32,10 @@ public class BigwheelController {
   *  - Entity를 DTO로 변환하여 응답
   * */
   @PostMapping
-  public ResponseEntity<GameResponse> saveGame(@Valid @RequestBody GameRequest request){
+  public ResponseEntity<GameSpinResponse> saveGame(@Valid @RequestBody GameSpinRequest request){
     log.info("게임 저장 요청 수신: userId={}, gameId={}", request.getUserId(), request.getTotalBetAmount() );
-    // Service 호출 (DTO -> entiry 변환은 Service Layer에서 진행)
-    Bigwheel savedGame = bigwheelService.saveGame(request);
-    // Entity -> DTO 변환(정적 팩토리 메서드 사용)으로 Controller는 Entity의 구조를 몰라도 됨.(느슨한 결합)
-    GameResponse response = GameResponse.from(savedGame);
+     // entiry -> DTO 변환은 Controller 단이 맞지만, 계산 결과가 service 단에 있어서 바로 반환해야함...
+    GameSpinResponse response = bigwheelService.saveGame(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
@@ -44,10 +45,10 @@ public class BigwheelController {
   * api: GET /api/games
    */
   @GetMapping
-  public ResponseEntity<List<GameResponse>> getAllGames(){
+  public ResponseEntity<List<GameSpinResponse>> getAllGames(){
     log.info("전체 게임 조회 요청");
     List<Bigwheel> games = bigwheelService.getAllGames();
-    List<GameResponse> gameResponseList = games.stream().map(GameResponse:: from).toList();
+    List<GameSpinResponse> gameResponseList = games.stream().map(GameSpinResponse:: from).toList();
     return ResponseEntity.ok(gameResponseList);
   }
 
@@ -56,11 +57,17 @@ public class BigwheelController {
   * GET /api/games/{userId}
   * */
   @GetMapping(value ="/{userId}")
-  public ResponseEntity<List<GameResponse>> getGameById(@PathVariable Long userId){
+  public ResponseEntity<List<GameSpinResponse>> getGameById(@PathVariable Long userId){
     log.info("사용자 게임 조회 요청: userId={}", userId);
     List<Bigwheel> games = bigwheelService.getUserGames(userId);
-    List<GameResponse> gameResponseList = games.stream().map(GameResponse:: from).toList();
+    List<GameSpinResponse> gameResponseList = games.stream().map(GameSpinResponse:: from).toList();
     return ResponseEntity.ok(gameResponseList);
   }
 
+  @GetMapping("/zones")
+  public ResponseEntity<BetZoneResponse> getZones() {
+    log.info("베팅 구역 정보 조회 요청");
+    BetZoneResponse response = BetZoneResponse.from();
+    return ResponseEntity.ok(response);
+  }
 }
