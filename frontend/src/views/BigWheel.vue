@@ -15,6 +15,12 @@
         <span class="status-dot complete"></span>
         라운드 완료
       </div>
+
+      <!-- 게임 모드 표시 배지 -->
+      <div class="mode-badge" :class="gameMode">
+        <span class="mode-icon">{{ gameMode === 'online' ? '🌐' : '📝' }}</span>
+        <span class="mode-text">{{ gameMode === 'online' ? '온라인' : '오프라인' }}</span>
+      </div>
     </div>
 
     <!-- 게임 히스토리 바 -->
@@ -43,7 +49,13 @@
       <!-- 게임 시작 후 빅휠 섹션 -->
       <section v-else class="game-section">
         <div class="wheel-container">
-          <svg width="300" height="300" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- 빅휠 SVG (항상 표시) -->
+          <svg
+            width="300"
+            height="300"
+            viewBox="0 0 200 200"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <circle cx="100" cy="100" r="95" fill="url(#wheelGradient)" stroke="#333" stroke-width="3"/>
             <defs>
               <linearGradient id="wheelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -135,6 +147,7 @@
 
         <!-- 베팅 종료 버튼 (베팅 중일 때만 표시) -->
         <div v-if="!bettingClosed && totalBettedAmount > 0" class="betting-control">
+          <button class="btn-cancel-betting" @click="cancelAllBets">베팅 취소</button>
           <button class="btn-end-betting" @click="endBetting">베팅 종료</button>
         </div>
 
@@ -222,11 +235,25 @@
       </div>
 
     </main>
+
+    <!-- 온라인 모드: 스핀 휠 모달 -->
+    <SpinWheelModal
+      :show="showSpinModal"
+      :zones="zones"
+      @spinComplete="handleSpinComplete"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import SpinWheelModal from '../components/SpinWheelModal.vue'
+
+// 게임 모드 (localStorage에서 로드)
+const gameMode = ref('offline') // 'online' | 'offline'
+
+// 스핀 모달 표시 여부
+const showSpinModal = ref(false)
 
 // 게임 상태
 const gameStarted = ref(false)
@@ -255,7 +282,7 @@ const currentChips = ref({
 
 // 베팅 구역 정의 (slots = 빅휠에서 차지하는 칸 수)
 const zones = [
-  { id: 'silver', name: 'SILVER', icon: '🥈', multiplier: 2, slots: 24 },
+  { id: 'silver', name: 'SILVER', icon: '🥈', multiplier: 2, slots: 25 },
   { id: 'gold', name: 'GOLD', icon: '🥇', multiplier: 3, slots: 15 },
   { id: 'emerald', name: 'EMERALD', icon: '💚', multiplier: 6, slots: 7 },
   { id: 'diamond', name: 'DIAMOND', icon: '💎', multiplier: 11, slots: 4 },
@@ -265,7 +292,7 @@ const zones = [
 ]
 
 // 전체 칸 수
-const totalSlots = 54
+const totalSlots = 55
 
 // 베팅 현황
 const bets = ref({
@@ -374,12 +401,21 @@ const startGame = () => {
   gameStarted.value = true
 }
 
+// 돌림판 완료 핸들러 (온라인 모드)
+const handleSpinComplete = (zoneId) => {
+  showSpinModal.value = false
+  inputResult(zoneId)
+}
+
 // 베팅 구역 클릭 처리
 const handleZoneClick = (zoneId) => {
   // 결과가 이미 입력된 경우 무시
   if (gameResult.value) return
 
-  // 베팅 종료 후 - 결과 입력 모드
+  // 온라인 모드에서는 베팅 종료 후 수동 입력 불가
+  if (gameMode.value === 'online' && bettingClosed.value) return
+
+  // 베팅 종료 후 - 결과 입력 모드 (오프라인 모드만)
   if (bettingClosed.value) {
     inputResult(zoneId)
     return
@@ -475,6 +511,40 @@ const confirmBet = () => {
   closeChipSelector()
 }
 
+// 베팅 취소
+const cancelAllBets = () => {
+  // 모든 베팅 금액을 칩으로 환불
+  for (const [zoneId, amount] of Object.entries(bets.value)) {
+    if (amount > 0) {
+      // 각 칩 타입별로 환불 처리
+      let remainingAmount = amount
+
+      // 큰 칩부터 환불
+      const chipValues = [
+        { key: 'chip1000000', value: 1000000 },
+        { key: 'chip100000', value: 100000 },
+        { key: 'chip10000', value: 10000 },
+        { key: 'chip5000', value: 5000 },
+        { key: 'chip1000', value: 1000 }
+      ]
+
+      for (const chip of chipValues) {
+        if (remainingAmount >= chip.value) {
+          const count = Math.floor(remainingAmount / chip.value)
+          currentChips.value[chip.key] += count
+          remainingAmount -= count * chip.value
+        }
+      }
+
+      // 베팅 초기화
+      bets.value[zoneId] = 0
+    }
+  }
+
+  // localStorage에 칩 정보 저장
+  localStorage.setItem('userChips', JSON.stringify(currentChips.value))
+}
+
 // 베팅 종료
 const endBetting = () => {
   if (totalBettedAmount.value === 0) {
@@ -483,6 +553,11 @@ const endBetting = () => {
   }
 
   bettingClosed.value = true
+
+  // 온라인 모드: 스핀 모달 열기
+  if (gameMode.value === 'online') {
+    showSpinModal.value = true
+  }
 }
 
 // 결과 입력
@@ -578,6 +653,12 @@ const nextRound = () => {
 }
 
 onMounted(() => {
+  // 페이지 로드 시 게임 모드 로드
+  const savedMode = localStorage.getItem('bigwheelGameMode')
+  if (savedMode) {
+    gameMode.value = savedMode
+  }
+
   // 페이지 로드 시 칩 데이터 확인
   const savedChips = localStorage.getItem('userChips')
   if (savedChips) {
@@ -600,9 +681,12 @@ onMounted(() => {
   position: sticky;
   top: 60px; /* header 높이만큼 */
   z-index: 100;
-  padding: 0.75rem 0;
+  padding: 0.75rem 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.3s;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
 }
 
 .page-header.header-default {
@@ -632,6 +716,7 @@ onMounted(() => {
 }
 
 .header-status {
+  grid-column: 2;
   text-align: center;
   font-size: 1rem;
   font-weight: 700;
@@ -641,6 +726,31 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+}
+
+/* 모드 배지 */
+.mode-badge {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--white);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.mode-icon {
+  font-size: 1rem;
+}
+
+.mode-text {
+  white-space: nowrap;
 }
 
 .status-dot {
@@ -923,14 +1033,35 @@ onMounted(() => {
 
 /* 베팅 컨트롤 */
 .betting-control {
-  text-align: center;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 2px dashed var(--border);
 }
 
+.btn-cancel-betting {
+  padding: 0.75rem 1rem;
+  background: transparent;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.btn-cancel-betting:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: #fef2f2;
+}
+
 .btn-end-betting {
-  width: 100%;
+  flex: 1;
   padding: 0.75rem 2rem;
   background: var(--secondary);
   color: var(--white);

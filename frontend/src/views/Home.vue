@@ -27,22 +27,39 @@
           <router-link to="/register" class="btn-secondary">회원가입</router-link>
         </div>
         <div v-else class="button-container">
-          <router-link to="/category" class="btn-play">게임 선택하기</router-link>
+          <button @click="showModeModal = true" class="btn-play">게임 선택하기</button>
           <router-link to="/chip-input" class="btn-secondary">칩 입력하기</router-link>
         </div>
       </div>
     </section>
+
+    <!-- 모드 선택 모달 -->
+    <ModeSelectionModal
+      :show="showModeModal"
+      @close="showModeModal = false"
+      @modeSelected="handleModeSelected"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import ModeSelectionModal from '../components/ModeSelectionModal.vue'
 
+const router = useRouter()
 const isLoggedIn = ref(false)
+const showModeModal = ref(false)
 
 onMounted(() => {
   isLoggedIn.value = localStorage.getItem('user') !== null
 })
+
+// 모드 선택 완료 시 플레이 페이지로 이동
+const handleModeSelected = (mode) => {
+  showModeModal.value = false
+  router.push('/play')
+}
 </script>
 
 <style scoped>
@@ -103,11 +120,14 @@ onMounted(() => {
   padding: 1rem 2.5rem;
   background: var(--white);
   color: var(--primary);
+  border: none;
   border-radius: 12px;
   font-weight: 700;
   font-size: 1.125rem;
+  cursor: pointer;
   transition: transform 0.3s, box-shadow 0.3s;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 100%;
 }
 
 .btn-play:hover {
