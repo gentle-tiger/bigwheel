@@ -14,10 +14,10 @@ import lombok.Setter;
 * */
 @Getter
 @Setter
-public class GameRequest {
+public class GameSpinRequest {
 
   @NotNull(message = "사용자 ID는 필수입니다") private Long userId;
-  @NotNull(message = "베팅 상세는 필수입니다") private Map<String, Long> betDetails;
+  @NotNull(message = "베팅 상세는 필수입니다") private Map<String, Map<String, Integer>> betDetails;
   @NotBlank(message = "결과 섹터는 필수입니다") private String resultSector;
   @NotNull(message = "총 베팅액은 필수입니다") private Long totalBetAmount;
   @NotNull(message = "당첨금은 필수입니다") private Long winningAmount;
