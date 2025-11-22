@@ -92,6 +92,14 @@
 
       <!-- Action Buttons -->
       <div class="action-section">
+        <button @click="openChipModal" class="chip-input-button">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>칩 입력하기</span>
+        </button>
+
         <button @click="goToGameHistory" class="game-history-button">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M9 5H7C6.46957 5 5.96086 5.21071 5.58579 5.58579C5.21071 5.96086 5 6.46957 5 7V19C5 19.5304 5.21071 20.0391 5.58579 20.4142C5.96086 20.7893 6.46957 21 7 21H17C17.5304 21 18.0391 20.7893 18.4142 20.4142C18.7893 20.0391 19 19.5304 19 19V7C19 6.46957 18.7893 5.96086 18.4142 5.58579C18.0391 5.21071 17.5304 5 17 5H15M9 5C9 5.53043 9.21071 6.03914 9.58579 6.41421C9.96086 6.78929 10.4696 7 11 7H13C13.5304 7 14.0391 6.78929 14.4142 6.41421C14.7893 6.03914 15 5.53043 15 5M9 5C9 4.46957 9.21071 3.96086 9.58579 3.58579C9.96086 3.21071 10.4696 3 11 3H13C13.5304 3 14.0391 3.21071 14.4142 3.58579C14.7893 3.96086 15 4.46957 15 5M12 12H15M12 16H15M9 12H9.01M9 16H9.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -107,15 +115,26 @@
         </button>
       </div>
     </main>
+
+    <!-- Chip Input Modal -->
+    <ChipInputModal
+      :show="showChipModal"
+      :userId="userId"
+      @close="showChipModal = false"
+      @saved="handleChipSaved"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import ChipInputModal from '../components/ChipInputModal.vue'
 
 const router = useRouter()
 const nickname = ref('게스트')
+const userId = ref('')
+const showChipModal = ref(false)
 
 const userChips = ref({
   chip1000: 0,
@@ -133,6 +152,7 @@ onMounted(() => {
     // nickname이 있으면 nickname 사용, 없으면 username 사용
     const savedNickname = localStorage.getItem('nickname')
     nickname.value = savedNickname || user
+    userId.value = localStorage.getItem('userId') || '1'
     // TODO: 실제 API에서 칩 개수 가져오기
     userChips.value = {
       chip1000: 10,
@@ -144,6 +164,16 @@ onMounted(() => {
   }
 })
 
+const openChipModal = () => {
+  showChipModal.value = true
+}
+
+const handleChipSaved = () => {
+  // 칩 저장 후 프로필 정보 새로고침
+  // TODO: 실제 API에서 칩 개수 다시 가져오기
+  console.log('칩이 저장되었습니다. 프로필을 새로고침합니다.')
+}
+
 const goToGameHistory = () => {
   router.push('/game-history')
 }
@@ -151,6 +181,7 @@ const goToGameHistory = () => {
 const handleLogout = () => {
   localStorage.removeItem('user')
   localStorage.removeItem('nickname')
+  localStorage.removeItem('userId')
   window.location.href = '/'
 }
 </script>
@@ -250,6 +281,31 @@ const handleLogout = () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.chip-input-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1.25rem;
+  background: var(--white);
+  color: #10b981;
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.chip-input-button:hover {
+  background: #10b981;
+  color: var(--white);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .game-history-button {

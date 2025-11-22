@@ -10,6 +10,31 @@
         <h1 class="page-title">빅휠 게임 기록</h1>
       </div>
 
+      <!-- Filter Buttons -->
+      <div class="filter-section">
+        <button
+          @click="setFilter('ALL')"
+          :class="{ active: filter === 'ALL' }"
+          class="filter-button"
+        >
+          전체
+        </button>
+        <button
+          @click="setFilter('ONLINE')"
+          :class="{ active: filter === 'ONLINE' }"
+          class="filter-button"
+        >
+          온라인 게임
+        </button>
+        <button
+          @click="setFilter('OFFLINE')"
+          :class="{ active: filter === 'OFFLINE' }"
+          class="filter-button"
+        >
+          오프라인 게임
+        </button>
+      </div>
+
       <!-- Loading State -->
       <div v-if="loading" class="loading-container">
         <div class="spinner"></div>
@@ -32,41 +57,56 @@
           v-for="game in games"
           :key="game.gameId"
           class="game-card"
+          :class="{ 'win': game.netProfit >= 0, 'loss': game.netProfit < 0 }"
           @click="openDetailModal(game)"
         >
-          <div class="game-header">
-            <div class="game-id">
-              <span class="label">게임 #{{ game.gameId }}</span>
-              <span class="date">{{ formatDate(game.playedAt) }}</span>
+          <!-- Header Row -->
+          <div class="game-card-header">
+            <div class="game-info">
+              <span class="result-indicator" :class="game.netProfit >= 0 ? 'win' : 'loss'">
+                {{ game.netProfit >= 0 ? '승' : '패' }}
+              </span>
+              <span class="game-title">게임 #{{ game.gameId }}</span>
+              <span class="game-mode">{{ game.gameMode === 'ONLINE' ? '온라인' : '오프라인' }}</span>
             </div>
-            <div
-              class="result-badge"
-              :class="getResultBadgeClass(game.resultSector)"
-            >
-              {{ game.resultSector }}
-            </div>
+            <span class="game-date">{{ formatDate(game.playedAt) }}</span>
           </div>
 
-          <div class="game-stats">
-            <div class="stat-item">
-              <span class="stat-label">베팅 금액</span>
-              <span class="stat-value">{{ formatCurrency(game.totalBetAmount) }}원</span>
+          <!-- Stats Row -->
+          <div class="game-card-stats">
+            <div class="stat">
+              <span class="stat-label">베팅</span>
+              <span class="stat-value">{{ formatCurrency(game.totalBetAmount) }}</span>
             </div>
-            <div class="stat-item">
-              <span class="stat-label">당첨 금액</span>
-              <span class="stat-value">{{ formatCurrency(game.winningAmount) }}원</span>
+            <span class="arrow">→</span>
+            <div class="stat">
+              <span class="stat-label">당첨</span>
+              <span class="stat-value">{{ formatCurrency(game.winningAmount) }}</span>
+            </div>
+            <span class="arrow">→</span>
+            <div class="stat profit-stat">
+              <span
+                class="profit-value"
+                :class="game.netProfit >= 0 ? 'profit' : 'loss'"
+              >
+                {{ game.netProfit >= 0 ? '+' : '' }}{{ formatCurrency(game.netProfit) }}
+              </span>
             </div>
           </div>
+        </div>
 
-          <div class="game-profit">
-            <span class="profit-label">순손익</span>
-            <span
-              class="profit-value"
-              :class="game.netProfit >= 0 ? 'profit' : 'loss'"
-            >
-              {{ game.netProfit >= 0 ? '+' : '' }}{{ formatCurrency(game.netProfit) }}원
-            </span>
-          </div>
+        <!-- Intersection Observer Target -->
+        <div ref="observerTarget" class="observer-target"></div>
+
+        <!-- Loading More Indicator -->
+        <div v-if="loadingMore" class="loading-more">
+          <div class="spinner-small"></div>
+          <p>더 불러오는 중...</p>
+        </div>
+
+        <!-- No More Data -->
+        <div v-if="!hasMore && games.length > 0" class="no-more-data">
+          <p>모든 게임 기록을 불러왔습니다</p>
         </div>
       </div>
     </main>
@@ -101,6 +141,48 @@
             </div>
           </div>
 
+          <!-- 베팅 분석 -->
+          <div class="detail-section">
+            <h3>베팅 분석</h3>
+            <div class="analysis-grid">
+              <!-- 승/패 여부 -->
+              <div class="analysis-item">
+                <span class="analysis-label">결과</span>
+                <span
+                  class="analysis-value"
+                  :class="selectedGame.netProfit >= 0 ? 'win' : 'lose'"
+                >
+                  {{ selectedGame.netProfit >= 0 ? '승리' : '패배' }}
+                </span>
+              </div>
+
+              <!-- 당첨 구역 베팅 여부 -->
+              <div class="analysis-item">
+                <span class="analysis-label">당첨 구역 베팅</span>
+                <span class="analysis-value">
+                  {{ isBetOnWinningZone(selectedGame) ? '예' : '아니오' }}
+                </span>
+              </div>
+
+              <!-- 총 베팅 구역 수 -->
+              <div class="analysis-item">
+                <span class="analysis-label">베팅 구역 수</span>
+                <span class="analysis-value">{{ Object.keys(selectedGame.betDetails).length }}개</span>
+              </div>
+
+              <!-- 수익률 -->
+              <div class="analysis-item full-width">
+                <span class="analysis-label">수익률</span>
+                <span
+                  class="analysis-value"
+                  :class="selectedGame.netProfit >= 0 ? 'profit' : 'loss'"
+                >
+                  {{ calculateReturnRate(selectedGame) }}%
+                </span>
+              </div>
+            </div>
+          </div>
+
           <!-- 베팅 내역 -->
           <div class="detail-section">
             <h3>베팅 내역</h3>
@@ -109,8 +191,13 @@
                 v-for="(chips, zone) in selectedGame.betDetails"
                 :key="zone"
                 class="bet-zone"
+                :class="{ 'winning-zone': zone === selectedGame.resultSector }"
               >
-                <div class="zone-name" :class="getZoneClass(zone)">{{ zone }}</div>
+                <div class="zone-header">
+                  <div class="zone-name" :class="getZoneClass(zone)">{{ zone }}</div>
+                  <span v-if="zone === selectedGame.resultSector" class="win-badge">당첨</span>
+                  <span v-else class="lose-badge">낙첨</span>
+                </div>
                 <div class="chip-list">
                   <div v-for="(count, chipType) in chips" :key="chipType" class="chip-item">
                     <span class="chip-type">{{ formatChipType(chipType) }}</span>
@@ -151,7 +238,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { gameApi } from '../api/api'
 
@@ -160,6 +247,15 @@ const games = ref([])
 const loading = ref(true)
 const showDetailModal = ref(false)
 const selectedGame = ref(null)
+const filter = ref('ALL')  // 'ALL', 'ONLINE', 'OFFLINE'
+
+// 무한 스크롤 상태
+const page = ref(1)
+const pageSize = 10
+const hasMore = ref(true)
+const loadingMore = ref(false)
+const observerTarget = ref(null)
+let observer = null
 
 // 칩 타입별 가치 매핑
 const chipValues = {
@@ -170,10 +266,136 @@ const chipValues = {
   'CHIP_1000000': 1000000
 }
 
+// 목업 데이터 생성 (총 30개)
+const createMockGames = () => {
+  const sectors = ['SILVER', 'GOLD', 'PURPLE', 'DIAMOND', 'BIGWHEEL']
+  const gameModes = ['ONLINE', 'OFFLINE']
+  const games = []
+
+  const baseDate = new Date('2025-11-23T15:00:00')
+
+  for (let i = 0; i < 30; i++) {
+    const gameMode = i % 3 === 0 ? 'OFFLINE' : 'ONLINE'
+    const resultSector = sectors[Math.floor(Math.random() * sectors.length)]
+
+    // 베팅 구역 생성 (1~3개)
+    const numBetZones = Math.floor(Math.random() * 3) + 1
+    const betZones = []
+    for (let j = 0; j < numBetZones; j++) {
+      let zone = sectors[Math.floor(Math.random() * sectors.length)]
+      while (betZones.includes(zone)) {
+        zone = sectors[Math.floor(Math.random() * sectors.length)]
+      }
+      betZones.push(zone)
+    }
+
+    // 당첨 여부 결정 (50% 확률)
+    const isWin = Math.random() > 0.5
+
+    // 당첨이면 당첨 구역을 베팅 구역에 포함
+    if (isWin && !betZones.includes(resultSector)) {
+      betZones[0] = resultSector
+    } else if (!isWin && betZones.includes(resultSector)) {
+      // 패배면 당첨 구역을 제외
+      const idx = betZones.indexOf(resultSector)
+      betZones[idx] = sectors.find(s => s !== resultSector && !betZones.includes(s))
+    }
+
+    // 베팅 상세 생성
+    const betDetails = {}
+    let totalBetAmount = 0
+
+    betZones.forEach(zone => {
+      const chipTypes = ['CHIP_1000', 'CHIP_5000', 'CHIP_10000', 'CHIP_100000']
+      const numChipTypes = Math.floor(Math.random() * 2) + 1
+      const chips = {}
+
+      for (let k = 0; k < numChipTypes; k++) {
+        const chipType = chipTypes[Math.floor(Math.random() * chipTypes.length)]
+        const count = Math.floor(Math.random() * 10) + 1
+        chips[chipType] = count
+        totalBetAmount += chipValues[chipType] * count
+      }
+
+      betDetails[zone] = chips
+    })
+
+    // 당첨 금액 계산
+    let winningAmount = 0
+    if (isWin) {
+      // 당첨 구역의 베팅액 계산
+      const winningBet = betDetails[resultSector]
+      let winningBetAmount = 0
+      Object.entries(winningBet).forEach(([chipType, count]) => {
+        winningBetAmount += chipValues[chipType] * count
+      })
+
+      // 구역별 배당률 (간단히)
+      const multipliers = {
+        'SILVER': 2,
+        'GOLD': 3,
+        'PURPLE': 5,
+        'DIAMOND': 9,
+        'BIGWHEEL': 45
+      }
+      winningAmount = winningBetAmount * multipliers[resultSector]
+    }
+
+    const netProfit = winningAmount - totalBetAmount
+
+    // 시간 계산 (최신 순)
+    const gameDate = new Date(baseDate)
+    gameDate.setHours(baseDate.getHours() - i * 2)
+
+    games.push({
+      gameId: i + 1,
+      gameMode,
+      playedAt: gameDate.toISOString(),
+      resultSector,
+      betDetails,
+      totalBetAmount,
+      winningAmount,
+      netProfit
+    })
+  }
+
+  return games
+}
+
 onMounted(async () => {
+  await fetchGames()
+  setupIntersectionObserver()
+})
+
+const fetchGames = async () => {
+  loading.value = true
+  page.value = 1
+  games.value = []
+
+  // 목업 데이터 사용
+  await new Promise(resolve => setTimeout(resolve, 500)) // 로딩 시뮬레이션
+
+  const allGames = createMockGames()
+
+  // 필터링
+  let filteredGames = filter.value === 'ALL'
+    ? allGames
+    : allGames.filter(game => game.gameMode === filter.value)
+
+  // 페이지네이션: 첫 페이지만 로드
+  const start = 0
+  const end = pageSize
+  games.value = filteredGames.slice(start, end)
+
+  // 더 불러올 데이터가 있는지 확인
+  hasMore.value = filteredGames.length > pageSize
+
+  loading.value = false
+
+  /* 실제 API 사용 시 아래 코드 활성화
   const userId = localStorage.getItem('userId')
+
   if (!userId) {
-    // 로그인하지 않은 경우 로컬스토리지에서 게임 기록 로드
     const localGames = localStorage.getItem('gameHistory')
     if (localGames) {
       try {
@@ -186,13 +408,16 @@ onMounted(async () => {
     return
   }
 
-  // 로그인한 경우 서버에서 게임 기록 로드
   try {
-    const response = await gameApi.getUserGames(userId)
+    let url = `/api/v1/games/${userId}`
+    if (filter.value !== 'ALL') {
+      url += `?gameMode=${filter.value}`
+    }
+
+    const response = await gameApi.getUserGames(userId, filter.value !== 'ALL' ? filter.value : undefined)
     games.value = response.data
   } catch (error) {
     console.error('게임 기록 조회 실패:', error)
-    // 서버 조회 실패 시 로컬스토리지에서 로드
     const localGames = localStorage.getItem('gameHistory')
     if (localGames) {
       try {
@@ -204,7 +429,83 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+  */
+}
+
+const loadMoreGames = async () => {
+  if (loadingMore.value || !hasMore.value) return
+
+  loadingMore.value = true
+
+  // 목업 데이터 사용
+  await new Promise(resolve => setTimeout(resolve, 500)) // 로딩 시뮬레이션
+
+  const allGames = createMockGames()
+
+  // 필터링
+  let filteredGames = filter.value === 'ALL'
+    ? allGames
+    : allGames.filter(game => game.gameMode === filter.value)
+
+  // 다음 페이지 데이터 로드
+  page.value++
+  const start = (page.value - 1) * pageSize
+  const end = page.value * pageSize
+  const newGames = filteredGames.slice(start, end)
+
+  // 기존 게임 목록에 추가
+  games.value = [...games.value, ...newGames]
+
+  // 더 불러올 데이터가 있는지 확인
+  hasMore.value = filteredGames.length > page.value * pageSize
+
+  loadingMore.value = false
+
+  /* 실제 API 사용 시
+  try {
+    const response = await gameApi.getUserGames(userId, filter.value !== 'ALL' ? filter.value : undefined, page.value)
+    games.value = [...games.value, ...response.data.games]
+    hasMore.value = response.data.hasMore
+  } catch (error) {
+    console.error('더 많은 게임 로드 실패:', error)
+  } finally {
+    loadingMore.value = false
+  }
+  */
+}
+
+const setupIntersectionObserver = () => {
+  const options = {
+    root: null, // viewport
+    rootMargin: '100px', // 하단 100px 전에 트리거
+    threshold: 0.1
+  }
+
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && hasMore.value && !loadingMore.value) {
+        loadMoreGames()
+      }
+    })
+  }, options)
+
+  // observer target이 있으면 관찰 시작
+  if (observerTarget.value) {
+    observer.observe(observerTarget.value)
+  }
+}
+
+onBeforeUnmount(() => {
+  // Intersection Observer 정리
+  if (observer) {
+    observer.disconnect()
+  }
 })
+
+const setFilter = (mode) => {
+  filter.value = mode
+  fetchGames()  // 재호출
+}
 
 const goBack = () => {
   router.back()
@@ -273,6 +574,18 @@ const getResultBadgeClass = (sector) => {
 const getZoneClass = (zone) => {
   return getResultBadgeClass(zone)
 }
+
+// 당첨 구역에 베팅했는지 확인
+const isBetOnWinningZone = (game) => {
+  return game.betDetails.hasOwnProperty(game.resultSector)
+}
+
+// 수익률 계산 (순손익 / 총 베팅액 * 100)
+const calculateReturnRate = (game) => {
+  if (game.totalBetAmount === 0) return '0.00'
+  const rate = (game.netProfit / game.totalBetAmount) * 100
+  return rate.toFixed(2)
+}
 </script>
 
 <style scoped>
@@ -293,7 +606,40 @@ const getZoneClass = (zone) => {
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Filter Section */
+.filter-section {
+  display: flex;
+  gap: 10px;
   margin-bottom: 2rem;
+  padding: 0 0px;
+}
+
+.filter-button {
+  flex: 1;
+  padding: 12px 20px;
+  border: 2px solid var(--border-color, #e0e0e0);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--text-secondary, #666);
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.filter-button:hover {
+  border-color: var(--primary, #6366f1);
+  color: var(--primary, #6366f1);
+}
+
+.filter-button.active {
+  background: var(--primary, #6366f1);
+  color: white;
+  border-color: var(--primary, #6366f1);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .back-button {
@@ -399,127 +745,126 @@ const getZoneClass = (zone) => {
 .games-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .game-card {
   background: var(--white);
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px var(--shadow);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.game-card.win {
+  border-left-color: #10b981;
+}
+
+.game-card.loss {
+  border-left-color: #ef4444;
 }
 
 .game-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-.game-header {
+/* Card Header */
+.game-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--light-gray);
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 
-.game-id {
+.game-info {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.game-id .label {
-  font-size: 1.1rem;
+.result-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--dark);
+  color: white;
 }
 
-.game-id .date {
-  font-size: 0.85rem;
-  color: var(--gray);
+.result-indicator.win {
+  background: #10b981;
 }
 
-.result-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
+.result-indicator.loss {
+  background: #ef4444;
+}
+
+.game-title {
+  font-size: 1rem;
   font-weight: 700;
-  text-transform: uppercase;
+  color: var(--dark, #1a1a1a);
 }
 
-.result-badge.silver {
-  background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 100%);
-  color: #666;
+.game-mode {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  background: var(--light-gray, #f5f5f5);
+  border-radius: 6px;
+  color: var(--gray, #666);
+  font-weight: 600;
 }
 
-.result-badge.gold {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #8B4513;
+.game-date {
+  font-size: 0.85rem;
+  color: var(--gray, #666);
+  font-weight: 500;
 }
 
-.result-badge.purple {
-  background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%);
-  color: white;
-}
-
-.result-badge.diamond {
-  background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%);
-  color: white;
-}
-
-.result-badge.bigwheel {
-  background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%);
-  color: white;
-}
-
-/* Game Stats */
-.game-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* Card Stats */
+.game-card-stats {
+  display: flex;
+  align-items: center;
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
-.stat-item {
+.stat {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
+  flex: 1;
 }
 
 .stat-label {
-  font-size: 0.85rem;
-  color: var(--gray);
+  font-size: 0.75rem;
+  color: var(--gray, #999);
   font-weight: 500;
 }
 
 .stat-value {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--dark);
+  color: var(--dark, #1a1a1a);
 }
 
-/* Game Profit */
-.game-profit {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  background: var(--light-gray);
-  border-radius: 12px;
+.arrow {
+  font-size: 1.2rem;
+  color: var(--gray, #ccc);
+  flex-shrink: 0;
 }
 
-.profit-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--dark);
+.profit-stat {
+  flex: 0.8;
 }
 
 .profit-value {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
 }
 
 .profit-value.profit {
@@ -621,6 +966,54 @@ const getZoneClass = (zone) => {
   font-size: 1.1rem;
 }
 
+/* Analysis Grid */
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.analysis-item {
+  background: var(--light-gray, #f5f5f5);
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.analysis-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.analysis-label {
+  color: var(--text-secondary, #666);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.analysis-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dark, #1a1a1a);
+}
+
+.analysis-value.win {
+  color: #10b981;
+}
+
+.analysis-value.lose {
+  color: #ef4444;
+}
+
+.analysis-value.profit {
+  color: #10b981;
+}
+
+.analysis-value.loss {
+  color: #ef4444;
+}
+
 /* Bet Details */
 .bet-details {
   display: flex;
@@ -632,6 +1025,20 @@ const getZoneClass = (zone) => {
   background: var(--light-gray);
   border-radius: 12px;
   padding: 1rem;
+  border: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.bet-zone.winning-zone {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.zone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 
 .zone-name {
@@ -641,7 +1048,24 @@ const getZoneClass = (zone) => {
   padding: 0.5rem 1rem;
   border-radius: 8px;
   display: inline-block;
-  margin-bottom: 0.75rem;
+}
+
+.win-badge {
+  background: #10b981;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.lose-badge {
+  background: var(--gray, #999);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .zone-name.silver { background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 100%); color: #666; }
@@ -720,14 +1144,95 @@ const getZoneClass = (zone) => {
   color: #ef4444;
 }
 
+/* Infinite Scroll Elements */
+.observer-target {
+  height: 20px;
+  margin: 1rem 0;
+}
+
+.loading-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  gap: 0.75rem;
+}
+
+.loading-more p {
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+
+.spinner-small {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--light-gray);
+  border-top: 3px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.no-more-data {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+
+.no-more-data p {
+  margin: 0;
+  padding: 1rem;
+  background: var(--light-gray);
+  border-radius: 12px;
+  color: var(--text-secondary, #666);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .page-title {
     font-size: 1.5rem;
   }
 
-  .game-stats {
-    grid-template-columns: 1fr;
+  .filter-section {
+    flex-direction: column;
+  }
+
+  .filter-button {
+    padding: 10px 16px;
+  }
+
+  .game-card {
+    padding: 0.875rem 1rem;
+  }
+
+  .game-card-stats {
+    gap: 0.5rem;
+  }
+
+  .arrow {
+    font-size: 1rem;
+  }
+
+  .stat-value {
+    font-size: 0.9rem;
+  }
+
+  .profit-value {
+    font-size: 1rem;
+  }
+
+  .game-info {
+    gap: 0.5rem;
+  }
+
+  .game-title {
+    font-size: 0.9rem;
+  }
+
+  .game-mode {
+    font-size: 0.7rem;
+    padding: 3px 8px;
   }
 
   .summary-grid {
@@ -740,6 +1245,10 @@ const getZoneClass = (zone) => {
 
   .modal-content {
     max-height: 95vh;
+  }
+
+  .analysis-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
