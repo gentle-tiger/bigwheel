@@ -17,7 +17,7 @@ public class UserChipsResponse {
 
   private Long userId;
   private String username;
-  private List<ChipDto> chips;
+  private List<UserChipDTO> chips;
   private Long totalBalance;
 
   public static UserChipsResponse from(User user){
@@ -25,7 +25,7 @@ public class UserChipsResponse {
         .userId(user.getId())
         .username(user.getUsername())
         .chips(user.getChips().stream()
-            .map(ChipDto::from)
+            .map(UserChipDTO::from)
             .collect(Collectors.toList()))
         .totalBalance(user.getTotalBalance())
         .build();

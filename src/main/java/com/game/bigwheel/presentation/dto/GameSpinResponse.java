@@ -28,7 +28,7 @@ public class GameSpinResponse {
   private Long netProfit;                             // 순손익
   private Map<String, Integer> winningChips;          // 승리 칩 (게임 실행 시에만 사용)
   private Map<String, Integer> lostChips;             // 잃어버린 칩 (게임 실행 시에만 사용)
-  private List<ChipDto> updateChips;                  // 최종 보유 칩 (게임 실행 시에만 사용)
+  private List<UserChipDTO> updateChips;                  // 최종 보유 칩 (게임 실행 시에만 사용)
   private Long totalBalance;                          // 최종 잔액 (게임 실행 시에만 사용)
   private String playedAt;
 
