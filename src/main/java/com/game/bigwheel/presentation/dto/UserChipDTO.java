@@ -10,15 +10,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChipDto {
+public class UserChipDTO {
 
   private String chipType;
   private Integer value;
   private Integer count;
   private Long totalValue;
 
-  public static ChipDto from(UserChip userChip) {
-    return ChipDto.builder()
+  public static UserChipDTO from(UserChip userChip) {
+    return UserChipDTO.builder()
         .chipType(userChip.getChipType().name())
         .value(userChip.getChipType().getValue())
         .count(userChip.getCount())

@@ -1,6 +1,6 @@
-package com.game.bigwheel.coin;
+package com.game.bigwheel.domain.coin;
 
-public enum Coin {
+public enum ChipType {
   CHIP_1000(1000), // 1,000원
   CHIP_5000(5000), // 5,000원
   CHIP_10000(10000), // 10,000원
@@ -9,7 +9,7 @@ public enum Coin {
 
   private final int value;
 
-  Coin(int value){
+  ChipType(int value){
     this.value = value;
   }
 

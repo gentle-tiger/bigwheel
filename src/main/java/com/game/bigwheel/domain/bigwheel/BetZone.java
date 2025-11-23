@@ -1,7 +1,7 @@
-package com.game.bigwheel;
+package com.game.bigwheel.domain.bigwheel;
 
 
-enum BetZone{
+public enum BetZone{
   SILVER(24, 2),
   GOLD(15,3),
   EMERALD(7,6),
