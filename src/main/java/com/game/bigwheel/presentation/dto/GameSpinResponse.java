@@ -1,6 +1,7 @@
 package com.game.bigwheel.presentation.dto;
 
 import com.game.bigwheel.domain.bigwheel.Bigwheel;
+import com.game.bigwheel.domain.bigwheel.GameMode;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,6 +31,7 @@ public class GameSpinResponse {
   private Map<String, Integer> lostChips;             // 잃어버린 칩 (게임 실행 시에만 사용)
   private List<UserChipDTO> updateChips;                  // 최종 보유 칩 (게임 실행 시에만 사용)
   private Long totalBalance;                          // 최종 잔액 (게임 실행 시에만 사용)
+  private GameMode gameMode;
   private String playedAt;
 
   /*
@@ -52,6 +54,7 @@ public class GameSpinResponse {
         .lostChips(null)     // 게임 조회에서는 불필요
         .updateChips(null)   // 게임 조회에서는 불필요
         .totalBalance(null)  // 게임 조회에서는 불필요
+        .gameMode(game.getGameMode())
         .playedAt(game.getPlayedAt().toString())
         .build();
   }

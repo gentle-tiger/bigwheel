@@ -1,5 +1,6 @@
 package com.game.bigwheel.presentation.dto;
 
+import com.game.bigwheel.domain.bigwheel.GameMode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
@@ -22,5 +23,10 @@ public class GameSpinRequest {
   @NotNull(message = "총 베팅액은 필수입니다") private Long totalBetAmount;
   @NotNull(message = "당첨금은 필수입니다") private Long winningAmount;
   @NotNull(message = "순이익은 필수입니다") private Long netProfit;
+  private GameMode gameMode;
   private String playedAt; // ISO 8601
+
+  public GameMode getGameMode(GameMode gameMode) {
+    return gameMode != null ? gameMode : GameMode.ONLINE;
+  }
 }

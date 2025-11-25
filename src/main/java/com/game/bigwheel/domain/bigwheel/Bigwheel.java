@@ -41,6 +41,10 @@ public class Bigwheel {
   @Column(nullable = false)
   private Long netProfit; // 순이익
 
+  @Enumerated(EnumType.STRING) // 문자열로 저장
+  @Column(name = "game_mode", nullable = false)
+  private GameMode gameMode; // 게임 모드 (ONLINE, OFFLINE)
+
   private LocalDateTime playedAt; // 게임 날짜
 
 }

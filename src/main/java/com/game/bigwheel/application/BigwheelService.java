@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.bigwheel.domain.bigwheel.Bigwheel;
 import com.game.bigwheel.domain.bigwheel.BigwheelRepository;
+import com.game.bigwheel.domain.bigwheel.GameMode;
+import com.game.bigwheel.domain.coin.ChipType;
 import com.game.bigwheel.domain.user.User;
 import com.game.bigwheel.domain.user.UserRepository;
 import com.game.bigwheel.presentation.dto.GameRequest;
@@ -36,13 +38,14 @@ public class BigwheelService {
         .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다." + request.getUserId()));
 
     Bigwheel game = Bigwheel.builder()
-        .user(user) 
-        .betDetails(request.getBetDetails())
-        .resultSector(request.getResultSector())
-        .totalBetAmount(request.getTotalBetAmount())
-        .winningAmount(request.getWinningAmount())
-        .netProfit(request.getNetProfit())
-        .playedAt(LocalDateTime.parse(request.getPlayedAt()))
+        .user(user)
+        .betDetails(betDetails)
+        .resultSector(resultZone.name())
+        .totalBetAmount(calculateTotalBet(betDetails)) // 계산
+        .winningAmount(calculateWinning(winningChips)) // 계산
+        .netProfit(calculateNetProfit(winningChips, betDetails)) // 계산
+        .playedAt(LocalDateTime.now())
+        .gameMode(request.getGameMode())
         .build();
 
     Bigwheel savedGame = bigwheelRepository.save(game);
