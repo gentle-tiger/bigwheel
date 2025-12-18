@@ -2,7 +2,7 @@ name: CI - Phase 1
 
 on:
   push:
-    branch: [ main, develop ]
+    branches: [ main, develop ]
 #  pull_request:
 #    branch: [ main ]  # main으로 PR 생성 시
 
@@ -31,7 +31,6 @@ jobs:
         with:
           path: ~/.gradle/cache
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
-               gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
 
       # 테스트 결과 업로드
       - name: Upload test results
