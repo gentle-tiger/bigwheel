@@ -20,22 +20,24 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      # Gradle 빌드
-      - name: Build with Gradle
-#        run: ./gradlew build -x test # 테스트 제외 빌드
-        run: ./gradlew build  # 테스트 포함 빌드
+
 
       # Gralde 캐싱 추가(속도 향상)
       - name: Cache Gradle packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: ~/.gradle/cache
+          path: ~/.gradle/caches
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
+
+      # Gradle 빌드
+      - name: Build with Gradle
+        #        run: ./gradlew build -x test # 테스트 제외 빌드
+        run: ./gradlew build  # 테스트 포함 빌드
 
       # 테스트 결과 업로드
       - name: Upload test results
         if: always() # 실패해도 실행
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: build/test-results/test/
