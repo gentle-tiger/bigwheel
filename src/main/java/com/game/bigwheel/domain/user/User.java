@@ -2,6 +2,8 @@ package com.game.bigwheel.domain.user;
 
 import com.game.bigwheel.domain.coin.ChipType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import java.util.*;
 
@@ -17,15 +19,23 @@ public class User {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @NotBlank
+  @NotNull(message = "username은 필수입니다.")
   @Column(nullable = false)
   private String username;
 
+  @NotBlank
+  @NotNull(message = "password 필수입니다.")
   @Column(nullable = false)
   private String password;
 
+  @NotBlank
+  @NotNull(message = "nickname 필수입니다.")
   @Column(nullable = false)
   private String nickname; // lowercase
 
+  @NotBlank
+  @NotNull(message = "email 필수입니다.")
   @Column(nullable = false)
   private String email;
 

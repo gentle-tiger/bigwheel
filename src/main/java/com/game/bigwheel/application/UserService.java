@@ -19,23 +19,17 @@ public class UserService {
   UserRepository userRepository;
 
   @Transactional
-  public ResponseEntity<String> register(User user)  {
-
-    try{
-      if(userRepository.findByUsername(user.getUsername()) != null) {
-        userRepository.save(user);
-      }
-
-      if(userRepository.existsByNickname(user.getNickname())){
-        throw new RuntimeException("이미 사용중인 닉네임입니다.");
-      }
-    }catch(Exception e){
-      log.error(e.getMessage());
+  public User register(User user)  {
+    if(userRepository.findByUsername(user.getUsername()).isPresent()) {
       throw new RuntimeException("이미 가입된 유저입니다.");
     }
 
+    if(user.getNickname() != null &&
+        userRepository.existsByNickname(user.getNickname())){
+      throw new RuntimeException("이미 사용중인 닉네임입니다.");
+    }
 
-    return ResponseEntity.ok("회원가입 성공");
+    return userRepository.save(user);
   }
 
   @Transactional
@@ -64,12 +58,12 @@ public class UserService {
 
     log.info("유저 칩 저장");
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+        .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
     // 입력값 검증
     chips.forEach((chipType, count) -> {
       if(count <= 0){
-        throw new IllegalStateException("칩 개수는 0보다 커야 합니다" + chipType); //이거 도메인 로직 아닌가? 여기 있어도 되나?
+        throw new IllegalStateException("칩 개수는 0보다 커야 합니다"); //이거 도메인 로직 아닌가? 여기 있어도 되나?
       }
     });
 

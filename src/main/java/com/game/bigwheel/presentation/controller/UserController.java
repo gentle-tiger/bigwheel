@@ -19,9 +19,9 @@ public class UserController {
   public UserService userService;
 
   @PostMapping("/register")
-  public String register(@RequestBody User user) {
-    userService.register(user);
-    return "OK";
+  public ResponseEntity<String> register(@RequestBody User user) {
+    User savedUser = userService.register(user);
+    return ResponseEntity.ok("회원가입 성공");
   }
 
   @PostMapping("/login")
