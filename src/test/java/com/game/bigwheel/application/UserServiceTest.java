@@ -174,10 +174,7 @@ public class UserServiceTest {
   }
 
 
-  @Test
-  void intentionalFail() {
-    Assertions.fail("Phase 2 테스트: 의도적 실패");
-  }
+
 }
 
 
