@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.gradle/cache
-          key: gradle-${{ runner.os}-${{ hashFiles('**/*.gradle*'}}}
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*'}}
 
 
       # 테스트 결과 업로드
