@@ -29,6 +29,12 @@ jobs:
           path: ~/.gradle/caches
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
 
+#      # 고급 Gradle 캐싱 -> 위와 무슨 차이?
+#      - name: Setup Gradle
+#        uses: gradle/actions/setup-gradle@4
+#        with:
+#          cache-read-only: ${{ github.ref != 'refs/heads/main}}
+
       # Gradle 빌드
       - name: Build with Gradle
         #        run: ./gradlew build -x test # 테스트 제외 빌드
