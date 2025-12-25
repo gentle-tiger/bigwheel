@@ -7,12 +7,16 @@ on:
 
 jobs:
   backend:
-    runs-on: ubuntu-latest # 우분투 최신 버전 가상 서버 사용
+    runs-on: ubuntu-22.04 # 프로덕션 워크폴로우(버전 고정 -> 안정적)
 
     steps:
       # main으로 PR 생성 시
       - name: Checkout code       # 코드 가져오기
         uses: actions/checkout@v4 # Github 코드 다운로드
+        with:
+           submodules: recursive           # 중첩 서브모듈까지
+           lfs: true                       # Git LFS 파일 다운로드
+           token: ${{ secrets.PAT_TOKEN }} # Private 서브모듈용
       # Java 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4 # java 설치
@@ -25,8 +29,17 @@ jobs:
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
-          path: ~/.gradle/caches
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
+          # 이게 캐싱의 핵심 !!
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ github.sha }}
+          # 정확한 key 매칭 시도 cahce hit!
+          # 실패 시 restore-keys 순서대로 prefix 매칭
+          # 부분 매칭된 캐시 복원 -> 빌드 -> 새 key로 저장
+          restore-keys: | 
+            gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-
+            gradle-${{ runner.os }}-
 
 #      # 고급 Gradle 캐싱 -> 위와 무슨 차이?
 #      - name: Setup Gradle
