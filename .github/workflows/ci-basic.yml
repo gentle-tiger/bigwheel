@@ -1,98 +1,150 @@
-name: CI - Phase 3 (Backend + Frontend)
+name: Bigwheel CIC/D Build & Deploy CI Pipeline
+
+# /*
+#  * 트리거 설정
+#  * - main, develop 브랜치 push 시 실행
+#  * - paths: 코드 변경 시에만 실행 (문서 변경은 무시 → 비용 절약)
+#  * - Dockerfile 변경 시에도 실행 (이미지 재빌드 필요)
+#  */
 on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'src/**'                  # Java 소스 코드
-      - '*.gradle*'               # build.gradle, settings.gradle
-      - 'gradle/**'               # Gradle wrapper
-      - 'frontend/**'             # 프론트엔드
-      - '.github/workflows/**'    # CI 설정 변경 시에도 검증 필요
+      - 'src/**'
+      - '*.gradle*'
+      - 'gradle/**'
+      - 'frontend/**'
+      - '.github/workflows/**'
+      - 'Dockerfile'
 
-#  pull_request:
-#    branch: [ main ]  # main으로 PR 생성 시
+# /*
+#  * 중복 빌드 방지
+#  * - 같은 브랜치에서 연속 push 시 이전 빌드 취소
+#  * - CI 비용 절약 + 최신 코드만 검증
+#  */
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# /*
+#  * 최소 권한 원칙 (Principle of Least Privilege)
+#  * - contents: read → 코드 읽기만 허용
+#  * - packages: write → Docker 이미지 push용
+#  * - security-events: write → Trivy 스캔 결과 업로드용
+#  */
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
+# /*
+#  * 환경 변수 중앙 관리
+#  */
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '20'
 
 jobs:
+  # ═══════════════════════════════════════════════════════════
+  # Backend Build & Test
+  # - Java 빌드 + 테스트 + JaCoCo 커버리지
+  # - 결과물(JAR)을 artifact로 저장 → Docker job에서 사용
+  # - timeout: 무한 실행 방지 (비용 + 리소스 보호)
+  # ═══════════════════════════════════════════════════════════
   backend:
-    runs-on: ubuntu-22.04 # 프로덕션 워크폴로우(버전 고정 -> 안정적)
+    runs-on: ubuntu-22.04 # 버전 고정
+    timeout-minutes: 15
 
     steps:
-      # main으로 PR 생성 시
-      - name: Checkout code       # 코드 가져오기
-        uses: actions/checkout@v4 # Github 코드 다운로드
-#        with:
-#           submodules: recursive           # 중첩 서브모듈까지
-#           lfs: true                       # Git LFS 파일 다운로드
-#           token: ${{ secrets.PAT_TOKEN }} # Private 서브모듈용
-      # Java 17
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4 # java 설치
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2 SHA 고정(보안)
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
-
-
-      # Gralde 캐싱 추가(속도 향상)
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      # /*
+      #  * Gradle 캐싱 (gradle/actions/setup-gradle)
+      #  * - 자동으로 ~/.gradle/caches, wrapper 캐싱
+      #  * - cache-read-only: main이 아닌 브랜치는 캐시 읽기만
+      #  *   → main에서만 캐시 업데이트 (일관성 유지)
+      #  */
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          # 이게 캐싱의 핵심 !!
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ github.sha }}
-          # 정확한 key 매칭 시도 cahce hit!
-          # 실패 시 restore-keys 순서대로 prefix 매칭
-          # 부분 매칭된 캐시 복원 -> 빌드 -> 새 key로 저장
-          # restore-keys: 정확한 key 매칭 실패 시 prefix 매칭 시도
-          # - 첫 번째: 같은 gradle 파일, 다른 커밋 → ~95% 재사용
-          # - 두 번째: OS만 같음 → ~70% 재사용
-          restore-keys: |
-            gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-
-            gradle-${{ runner.os }}-
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
-#      # 고급 Gradle 캐싱 -> 위와 무슨 차이?
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@4
-#        with:
-#          cache-read-only: ${{ github.ref != 'refs/heads/main}}
+      - name: Build and Test with Coverage
+        run: ./gradlew build jacocoTestReport
 
-      # Gradle 빌드
-      - name: Build with Gradle
-        # run: ./gradlew build -x test # 테스트 제외 빌드
-        run: ./gradlew build  # 테스트 포함 빌드
 
-      # 테스트 결과 업로드
+      # /*
+      #  * Codecov: 코드 커버리지 시각화 서비스
+      #  * - PR에 커버리지 변화 코멘트 자동 추가
+      #  * - fail_ci_if_error: false → 커버리지 실패해도 빌드 계속
+      #  */
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: build/reports/jacoco/test/jacocoTestReport.xml
+          fail_ci_if_error: false
+        continue-on-error: true
+
       - name: Upload JAR
-        if: ${{ !cancelled() }} # 취소 시 skip으로 사용량 절약 가능
         uses: actions/upload-artifact@v4
         with:
           name: backend-jar
           path: build/libs/*.jar
-          retention-days: 7 #  저장소 용량 관리 주기
+          retention-days: 1
 
-  # frontend job (병렬 실행)
+      # /*
+      #  * 테스트 결과 업로드
+      #  * - !cancelled(): 빌드 취소 시에는 skip (비용 절약)
+      #  * - retention-days: 7일 후 자동 삭제 (저장소 용량 관리)
+      #  */
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: build/test-results/test
+          retention-days: 7
+
+
+  # ═══════════════════════════════════════════════════════════
+  # Frontend Build (Backend와 병렬 실행)
+  # - npm ci: package-lock.json 기준 정확한 버전 설치
+  # - 빌드 결과물(dist)을 artifact로 저장 → Docker job에서 사용
+  # ═══════════════════════════════════════════════════════════
   frontend:
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
 
     defaults:
       run:
         working-directory: ./frontend
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
+      # /*
+      #  * Node.js 캐싱
+      #  * - cache: 'npm' → node_modules 자동 캐싱
+      #  * - cache-dependency-path: package-lock.json 변경 시 캐시 갱신
+      #  */
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies     # npm install보다 빠르고 안정적임
+      - name: Install dependencies
         run: npm ci
 
-      - name: Build Frontend
+      - name: Build
         run: npm run build
 
       - name: Upload dist
@@ -102,43 +154,83 @@ jobs:
           path: frontend/dist/
           retention-days: 1
 
-
-  # Docker 빌드
-  docker:
+  # ═══════════════════════════════════════════════════════════
+  # Security Scan (Backend, Frontend와 병렬 실행)
+  # - Trivy: 오픈소스 취약점 스캐너
+  # - CRITICAL, HIGH 등급 취약점만 검사
+  # - SARIF 형식으로 GitHub Security 탭에 표시
+  # - exit-code: '0' → 취약점 있어도 빌드 실패 안 함 (초기 단계)
+  # ═══════════════════════════════════════════════════════════
+  security:
     runs-on: ubuntu-22.04
-    needs: [backend, frontend]
-#    if: github.ref == 'refs/heads/main' || startWith(github.ref, 'refs/tags/v')
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - name: Download JAR
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
+
+  # ═══════════════════════════════════════════════════════════
+  # Docker Build & Push
+  # - needs: backend, frontend 완료 후 실행
+  # - artifact에서 JAR, dist 다운로드 → 이미지에 포함
+  # - metadata-action: 자동 태그 생성 (브랜치명, SHA, latest 등)
+  # - cache-from/to: GitHub Actions 캐시로 레이어 캐싱
+  # ═══════════════════════════════════════════════════════════
+  docker:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Download JAR                 # backend
         uses: actions/download-artifact@v4
         with:
           name: backend-jar
           path: build/libs/
 
-      - name: Download Frontend dist
+      - name: Download Frontend dist        # frontend
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: src/main/resources/static/
 
-      # Docker 메타데이터 (자동 태그 생성)
+      # ═══════════════════════════════════════════════════════════
+      #  Docker 태그 자동 생성
+      #  - type=ref,event=branch → 브랜치명 (main, develop)
+      #  - type=sha → 커밋 SHA (main-abc1234)
+      #  - type=raw,value=latest → main 브랜치는 latest 태그도 추가
+      # ═══════════════════════════════════════════════════════════
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5 # 이건 왜 v5 를 쓰지
+        uses: docker/metadata-action@v5
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/bigwheel
-          tags: | 
+          tags: |
             type=ref,event=branch
             type=sha,prefix={{branch}}-
-            type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
 
-
-      - name: Login to Docker Hub
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -147,12 +239,42 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+
+      # /*
+      #  * Docker 빌드 & 푸시
+      #  * - cache-from/to: type=gha → GitHub Actions 캐시 활용
+      #  * - 레이어 캐싱으로 빌드 시간 단축
+      #  */
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: .  # Dockerfile 위치 (루트에 Dockerfile 있으므로 . 사용)
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}    # metadata-action에서 자동 생성된 태그 사용
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+
+
+  # ═══════════════════════════════════════════════════════════
+  # Notification (항상 실행)
+  # - if: always() → 성공/실패 관계없이 항상 실행
+  # - Slack으로 빌드 결과 알림
+  # - SLACK_WEBHOOK_URL 없으면 자동 스킵
+  # ═══════════════════════════════════════════════════════════
+  notify:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    needs: [backend, frontend, docker]
+    if: always()
+
+    steps:
+      - name: Slack Notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: ${{ env.SLACK_WEBHOOK_URL != '' }}
