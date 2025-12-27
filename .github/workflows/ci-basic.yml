@@ -43,11 +43,12 @@ jobs:
           # 정확한 key 매칭 시도 cahce hit!
           # 실패 시 restore-keys 순서대로 prefix 매칭
           # 부분 매칭된 캐시 복원 -> 빌드 -> 새 key로 저장
-          restore-keys: | 
+          # restore-keys: 정확한 key 매칭 실패 시 prefix 매칭 시도
+          # - 첫 번째: 같은 gradle 파일, 다른 커밋 → ~95% 재사용
+          # - 두 번째: OS만 같음 → ~70% 재사용
+          restore-keys: |
             gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-
-#             ↑ 같은 gradle 파일, 다른 커밋 → ~95% 재사용
             gradle-${{ runner.os }}-
-#             ↑ OS만 같음 → ~70% 재사용
 
 #      # 고급 Gradle 캐싱 -> 위와 무슨 차이?
 #      - name: Setup Gradle
