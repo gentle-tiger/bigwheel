@@ -3,10 +3,11 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'src/**'        # Java 소스 코드
-      - '*.gradle*'     # build.gradle, settings.gradle
-      - 'gradle/**'     # Gradle wrapper
-      - 'frontend/**'   # 프론트엔드
+      - 'src/**'                  # Java 소스 코드
+      - '*.gradle*'               # build.gradle, settings.gradle
+      - 'gradle/**'               # Gradle wrapper
+      - 'frontend/**'             # 프론트엔드
+      - '.github/workflows/**'    # CI 설정 변경 시에도 검증 필요
 
 #  pull_request:
 #    branch: [ main ]  # main으로 PR 생성 시
