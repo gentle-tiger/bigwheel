@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: bigwheel
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bigwheel
+    username: postgresql
+    password: postgresql
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        default_schema: public
