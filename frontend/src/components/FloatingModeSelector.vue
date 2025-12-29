@@ -71,21 +71,21 @@ onMounted(() => {
 <style scoped>
 .floating-mode-selector {
   position: fixed;
-  bottom: 80px;
+  bottom: 100px;
   right: 20px;
   z-index: 1000;
 }
 
 .mode-toggle-btn {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
   color: white;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 25px rgba(153, 69, 255, 0.5);
   transition: all 0.3s;
   display: flex;
   align-items: center;
@@ -93,26 +93,29 @@ onMounted(() => {
 }
 
 .mode-toggle-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 0 35px rgba(153, 69, 255, 0.7), 0 0 50px rgba(0, 217, 255, 0.3);
 }
 
 .mode-toggle-btn:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 .mode-icon {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
 }
 
 .mode-menu {
   position: absolute;
-  bottom: 70px;
+  bottom: 65px;
   right: 0;
   width: 200px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  background: rgba(13, 17, 23, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(153, 69, 255, 0.2);
   overflow: hidden;
   animation: slideUp 0.2s ease-out;
 }
@@ -132,10 +135,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   cursor: pointer;
-  transition: background 0.2s;
-  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.2s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .mode-option:last-child {
@@ -143,11 +146,11 @@ onMounted(() => {
 }
 
 .mode-option:hover {
-  background: #f9fafb;
+  background: rgba(153, 69, 255, 0.15);
 }
 
 .option-icon {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   flex-shrink: 0;
 }
 
@@ -156,21 +159,22 @@ onMounted(() => {
 }
 
 .option-title {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #1f2937;
+  color: #fff;
   margin-bottom: 2px;
 }
 
 .option-desc {
-  font-size: 0.75rem;
-  color: #6b7280;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .check-icon {
-  font-size: 1.125rem;
-  color: #10b981;
+  font-size: 1rem;
+  color: #00ff88;
   font-weight: bold;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
 }
 
 .mode-overlay {
@@ -179,7 +183,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.5);
   z-index: -1;
 }
 </style>

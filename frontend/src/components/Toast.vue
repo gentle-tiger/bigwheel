@@ -60,56 +60,87 @@ watch(() => props.show, (newVal) => {
 <style scoped>
 .toast-container {
   position: fixed;
-  top: 70px; /* 헤더 아래 */
+  top: 60px; /* 헤더 아래 */
   left: 50%;
   transform: translateX(-50%);
   z-index: 10001;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background: white;
+  padding: 0.875rem 1.25rem;
+  background: rgba(13, 17, 23, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  min-width: 280px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+  min-width: 260px;
   max-width: 90vw;
 }
 
 .toast-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: white;
   flex-shrink: 0;
 }
 
 .toast-message {
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #1f2937;
+  color: #fff;
 }
 
 /* 타입별 색상 */
 .toast-container.success .toast-icon {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #00ff88;
+  color: #0a0a0f;
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
 }
 
 .toast-container.error .toast-icon {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: #ff3366;
+  color: #fff;
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
 }
 
 .toast-container.warning .toast-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: #ffcc00;
+  color: #0a0a0f;
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
 }
 
 .toast-container.info .toast-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: #00d9ff;
+  color: #0a0a0f;
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+}
+
+/* 타입별 테두리 글로우 */
+.toast-container.success {
+  border-color: rgba(0, 255, 136, 0.3);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+.toast-container.error {
+  border-color: rgba(255, 51, 102, 0.3);
+  box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
+}
+
+.toast-container.warning {
+  border-color: rgba(255, 204, 0, 0.3);
+  box-shadow: 0 0 20px rgba(255, 204, 0, 0.2);
+}
+
+.toast-container.info {
+  border-color: rgba(0, 217, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
 }
 
 /* 애니메이션 */
@@ -146,18 +177,18 @@ watch(() => props.show, (newVal) => {
 /* 모바일 최적화 */
 @media (max-width: 640px) {
   .toast-container {
-    min-width: 260px;
-    padding: 0.875rem 1.25rem;
+    min-width: 240px;
+    padding: 0.75rem 1rem;
   }
 
   .toast-icon {
-    width: 28px;
-    height: 28px;
-    font-size: 1rem;
+    width: 24px;
+    height: 24px;
+    font-size: 0.875rem;
   }
 
   .toast-message {
-    font-size: 0.8125rem;
+    font-size: 0.8rem;
   }
 }
 </style>

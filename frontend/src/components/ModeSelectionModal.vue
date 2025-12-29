@@ -63,12 +63,13 @@ const handleOverlayClick = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
   animation: fadeIn 0.2s ease-out;
+  padding: 1rem;
 }
 
 @keyframes fadeIn {
@@ -81,12 +82,15 @@ const handleOverlayClick = () => {
 }
 
 .modal-content {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  background: rgba(13, 17, 23, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(153, 69, 255, 0.2);
   animation: slideUp 0.3s ease-out;
 }
 
@@ -102,33 +106,37 @@ const handleOverlayClick = () => {
 }
 
 .modal-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #1f2937;
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 50%, #00d9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .modal-subtitle {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 1.25rem;
 }
 
 .mode-options {
   display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 1rem;
 }
 
 .mode-card {
   flex: 1;
-  padding: 24px;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -136,29 +144,30 @@ const handleOverlayClick = () => {
 }
 
 .mode-card:hover {
-  border-color: #6366f1;
-  background: #f9fafb;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+  border-color: rgba(153, 69, 255, 0.5);
+  transform: translateY(-4px);
+  box-shadow: 0 0 25px rgba(153, 69, 255, 0.3);
 }
 
 .mode-icon {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  margin-bottom: 16px;
+  font-size: 1.75rem;
+  margin-bottom: 12px;
 }
 
 .mode-icon.online {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
+  box-shadow: 0 0 20px rgba(153, 69, 255, 0.4);
 }
 
 .mode-icon.offline {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
 }
 
 .mode-info {
@@ -166,33 +175,34 @@ const handleOverlayClick = () => {
 }
 
 .mode-name {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 8px;
+  color: #fff;
+  margin-bottom: 6px;
 }
 
 .mode-description {
-  font-size: 0.875rem;
-  color: #6b7280;
-  line-height: 1.5;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
 }
 
 .close-button {
   width: 100%;
-  padding: 12px;
-  background: #f3f4f6;
-  color: #6b7280;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .close-button:hover {
-  background: #e5e7eb;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 /* 반응형 - 모바일 */
@@ -202,11 +212,21 @@ const handleOverlayClick = () => {
   }
 
   .modal-content {
-    padding: 24px;
+    padding: 1.25rem;
   }
 
   .mode-card {
-    padding: 20px;
+    padding: 1rem;
+    flex-direction: row;
+    text-align: left;
+    gap: 1rem;
+  }
+
+  .mode-icon {
+    margin-bottom: 0;
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
   }
 }
 </style>

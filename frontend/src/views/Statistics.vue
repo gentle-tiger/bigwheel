@@ -20,21 +20,25 @@ import GameHistory from './GameHistory.vue'
 .statistics-page {
   min-height: calc(100vh - 130px);
   padding-bottom: 80px;
-  background: #f3f4f6;
+  background: linear-gradient(180deg, #1a0a2e 0%, #0d1117 50%, #0a1628 100%);
 }
 
 .page-header {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  padding: 1.5rem 1rem;
+  background: linear-gradient(135deg, rgba(153, 69, 255, 0.15) 0%, rgba(0, 217, 255, 0.1) 100%);
+  border-bottom: 1px solid rgba(153, 69, 255, 0.2);
+  padding: 1rem;
   color: white;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .page-header h1 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 0;
+  background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .content {

@@ -671,6 +671,7 @@ onMounted(() => {
 .bigwheel-page {
   min-height: calc(100vh - 200px);
   padding-bottom: 1rem;
+  background: linear-gradient(180deg, #0d1117 0%, #0a1628 100%);
 }
 
 .main-content {
@@ -679,39 +680,44 @@ onMounted(() => {
 
 .page-header {
   position: sticky;
-  top: 60px; /* header 높이만큼 */
+  top: 52px;
   z-index: 100;
-  padding: 0.75rem 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0.625rem 1rem;
   transition: all 0.3s;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .page-header.header-default {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, rgba(255, 45, 123, 0.9) 0%, rgba(153, 69, 255, 0.9) 100%);
+  box-shadow: 0 0 20px rgba(255, 45, 123, 0.3);
 }
 
 .page-header.header-betting {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.9) 0%, rgba(153, 69, 255, 0.9) 100%);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
 }
 
 .page-header.header-result {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.9) 0%, rgba(0, 217, 255, 0.9) 100%);
+  box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
   animation: pulseHeader 2s infinite;
 }
 
 .page-header.header-complete {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, rgba(153, 69, 255, 0.9) 0%, rgba(255, 45, 123, 0.9) 100%);
+  box-shadow: 0 0 20px rgba(153, 69, 255, 0.3);
 }
 
 @keyframes pulseHeader {
   0%, 100% {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
   }
   50% {
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.6), 0 0 60px rgba(0, 255, 136, 0.3);
   }
 }
 
@@ -786,9 +792,11 @@ onMounted(() => {
 /* 게임 히스토리 바 */
 .history-bar {
   position: sticky;
-  top: calc(60px + 48px); /* header + status bar */
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
+  top: calc(52px + 44px);
+  background: rgba(13, 17, 23, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding: 0.5rem;
   z-index: 99;
   overflow: hidden;
@@ -841,13 +849,15 @@ onMounted(() => {
 }
 
 .history-item.history-win {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1.5px solid #10b981;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1.5px solid #00ff88;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
 }
 
 .history-item.history-lose {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1.5px solid #ef4444;
+  background: rgba(255, 51, 102, 0.1);
+  border: 1.5px solid #ff3366;
+  box-shadow: 0 0 10px rgba(255, 51, 102, 0.2);
 }
 
 .history-zone {
@@ -883,7 +893,7 @@ onMounted(() => {
   font-weight: 700;
   margin-bottom: 0.75rem;
   text-align: center;
-  color: var(--dark);
+  color: #fff;
 }
 
 /* 게임 시작 섹션 */
@@ -898,30 +908,42 @@ onMounted(() => {
 
 .btn-start-game {
   padding: 1.2rem 3rem;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-  color: var(--white);
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 100%);
+  color: #fff;
   border: none;
   border-radius: 14px;
   font-size: 1.25rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 30px rgba(255, 45, 123, 0.5);
+  animation: neon-pulse-btn 2s ease-in-out infinite;
+}
+
+@keyframes neon-pulse-btn {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 45, 123, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 45, 123, 0.6), 0 0 60px rgba(255, 45, 123, 0.3);
+  }
 }
 
 .btn-start-game:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.5);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 0 50px rgba(255, 45, 123, 0.6), 0 0 80px rgba(255, 45, 123, 0.3);
 }
 
 /* 게임 섹션 */
 .game-section {
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 0.75rem;
   margin-bottom: 0.75rem;
   text-align: center;
-  box-shadow: 0 2px 8px var(--shadow);
   position: relative;
   overflow: visible;
 }
@@ -951,10 +973,12 @@ onMounted(() => {
 
 .info-card {
   flex: 1;
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 0.75rem;
-  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .info-card h3 {
@@ -962,7 +986,7 @@ onMounted(() => {
   font-weight: 700;
   margin-bottom: 0.5rem;
   text-align: center;
-  color: var(--dark);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .chip-info, .stats-info {
@@ -974,61 +998,66 @@ onMounted(() => {
 .info-item, .stat-item {
   flex: 1;
   padding: 0.5rem;
-  background: var(--light-gray);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   text-align: center;
 }
 
 .stat-item.win {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(0, 255, 136, 0.1);
+  border-color: rgba(0, 255, 136, 0.3);
 }
 
 .stat-item.loss {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(255, 51, 102, 0.1);
+  border-color: rgba(255, 51, 102, 0.3);
 }
 
 .info-item span, .stat-item span {
   display: block;
   font-size: 0.7rem;
-  color: var(--gray);
+  color: rgba(255, 255, 255, 0.5);
   margin-bottom: 0.25rem;
 }
 
 .info-item strong {
   display: block;
   font-size: 0.95rem;
-  color: var(--primary);
+  color: #ff2d7b;
 }
 
 .stat-item.win strong {
   display: block;
   font-size: 0.85rem;
-  color: #10b981;
+  color: #00ff88;
   font-weight: 700;
 }
 
 .stat-item.loss strong {
   display: block;
   font-size: 0.85rem;
-  color: #ef4444;
+  color: #ff3366;
   font-weight: 700;
 }
 
 .stats-total {
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
   font-size: 0.8rem;
   font-weight: 700;
 }
 
 .stats-total.profit-positive {
-  color: #10b981;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .stats-total.profit-negative {
-  color: #ef4444;
+  color: #ff3366;
+  text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
 }
 
 /* 베팅 컨트롤 */
@@ -1038,14 +1067,14 @@ onMounted(() => {
   align-items: center;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 2px dashed var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-cancel-betting {
   padding: 0.75rem 1rem;
   background: transparent;
-  color: #6b7280;
-  border: 2px solid #e5e7eb;
+  color: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 600;
@@ -1055,37 +1084,39 @@ onMounted(() => {
 }
 
 .btn-cancel-betting:hover {
-  border-color: #ef4444;
-  color: #ef4444;
-  background: #fef2f2;
+  border-color: #ff3366;
+  color: #ff3366;
+  background: rgba(255, 51, 102, 0.1);
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.3);
 }
 
 .btn-end-betting {
   flex: 1;
   padding: 0.75rem 2rem;
-  background: var(--secondary);
-  color: var(--white);
+  background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
+  color: #fff;
   border: none;
   border-radius: 10px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 20px rgba(153, 69, 255, 0.4);
 }
 
 .btn-end-betting:hover {
-  background: #7c3aed;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 30px rgba(153, 69, 255, 0.6), 0 0 50px rgba(0, 217, 255, 0.3);
 }
 
 /* 베팅 구역 */
 .zones-section {
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 0.75rem;
-  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .zones-row {
@@ -1097,7 +1128,8 @@ onMounted(() => {
 }
 
 .zone-card {
-  background: var(--light-gray);
+  background: rgba(10, 10, 15, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 0.35rem 0.4rem;
   text-align: center;
@@ -1112,19 +1144,21 @@ onMounted(() => {
 
 .zone-card:hover:not(.betting-closed):not(.active) {
   transform: translateY(-8px) scale(1.08);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 20px rgba(153, 69, 255, 0.4);
+  border-color: rgba(153, 69, 255, 0.5);
   z-index: 10;
 }
 
 .zone-card.active {
   transform: translateY(-8px) scale(1.08);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 25px rgba(255, 45, 123, 0.5);
+  border-color: #ff2d7b;
   z-index: 10;
 }
 
 .zone-card.betting-closed {
-  opacity: 0.7;
-  filter: grayscale(30%);
+  opacity: 0.5;
+  filter: grayscale(40%);
 }
 
 .zone-card.result-mode {
@@ -1134,7 +1168,8 @@ onMounted(() => {
 
 .zone-card.result-mode:hover {
   transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
+  border-color: #00d9ff;
   opacity: 1;
   filter: grayscale(0%);
 }
@@ -1149,31 +1184,32 @@ onMounted(() => {
   font-weight: 700;
   margin-bottom: 0.1rem;
   line-height: 1.2;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .zone-odds {
   font-size: 0.55rem;
   font-weight: 600;
-  color: var(--dark);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .bet-amount {
   margin-top: 0.3rem;
   padding: 0.2rem;
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(255, 45, 123, 0.15);
   border-radius: 4px;
   font-size: 0.5rem;
   font-weight: 700;
-  color: var(--primary);
+  color: #ff2d7b;
 }
 
-.zone-card.silver { border-top: 4px solid #c0c0c0; }
-.zone-card.gold { border-top: 4px solid #ffd700; }
-.zone-card.emerald { border-top: 4px solid #10b981; }
-.zone-card.diamond { border-top: 4px solid #60a5fa; }
-.zone-card.crystal { border-top: 4px solid #a78bfa; }
-.zone-card.joker { border-top: 4px solid #ef4444; }
-.zone-card.mega { border-top: 4px solid #f59e0b; }
+.zone-card.silver { border-top: 4px solid #c0c0c0; box-shadow: 0 0 10px rgba(192, 192, 192, 0.3); }
+.zone-card.gold { border-top: 4px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+.zone-card.emerald { border-top: 4px solid #00ff88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.3); }
+.zone-card.diamond { border-top: 4px solid #00d9ff; box-shadow: 0 0 10px rgba(0, 217, 255, 0.3); }
+.zone-card.crystal { border-top: 4px solid #9945ff; box-shadow: 0 0 10px rgba(153, 69, 255, 0.3); }
+.zone-card.joker { border-top: 4px solid #ff3366; box-shadow: 0 0 10px rgba(255, 51, 102, 0.3); }
+.zone-card.mega { border-top: 4px solid #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.3); }
 
 /* 칩 선택 팝업 */
 .chip-selector-overlay {
@@ -1182,23 +1218,25 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   z-index: 1000;
-  padding-bottom: 60px; /* 네비게이션 바 높이만큼 */
+  padding-bottom: 80px; /* 네비게이션 바 높이만큼 */
 }
 
 .chip-selector-popup {
-  background: var(--white);
-  border-radius: 16px;
-  padding: 0.75rem 1rem;
-  width: auto;
-  max-width: 350px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+  background: rgba(13, 17, 23, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px 20px 0 0;
+  padding: 1rem 1.25rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(153, 69, 255, 0.2);
   animation: slideUp 0.25s ease-out;
-  margin: 0 1rem;
 }
 
 @keyframes slideUp {
@@ -1212,18 +1250,18 @@ onMounted(() => {
 
 .popup-header {
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--gray);
-  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.75rem;
 }
 
 .chip-icons {
   display: flex;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   padding: 0.25rem 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .chip-icon-btn {
@@ -1232,7 +1270,7 @@ onMounted(() => {
   transition: all 0.15s ease-out;
   opacity: 1;
   border-radius: 50%;
-  padding: 2px;
+  padding: 3px;
 }
 
 .chip-icon-btn:active:not(.disabled) {
@@ -1250,8 +1288,8 @@ onMounted(() => {
   position: absolute;
   top: -4px;
   right: -4px;
-  background: var(--primary);
-  color: var(--white);
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 100%);
+  color: #fff;
   border-radius: 50%;
   width: 18px;
   height: 18px;
@@ -1260,15 +1298,15 @@ onMounted(() => {
   justify-content: center;
   font-size: 0.65rem;
   font-weight: 700;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 10px rgba(255, 45, 123, 0.5);
 }
 
 .selected-count-badge {
   position: absolute;
   bottom: -4px;
   left: -4px;
-  background: #10b981;
-  color: var(--white);
+  background: #00ff88;
+  color: #0a0a0f;
   border-radius: 50%;
   width: 20px;
   height: 20px;
@@ -1277,7 +1315,7 @@ onMounted(() => {
   justify-content: center;
   font-size: 0.7rem;
   font-weight: 700;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
   animation: popIn 0.2s ease-out;
 }
 
@@ -1295,25 +1333,27 @@ onMounted(() => {
 
 .btn-confirm-bet {
   width: 100%;
-  padding: 0.5rem;
-  background: var(--primary);
-  color: var(--white);
+  padding: 0.625rem;
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 100%);
+  color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 0 20px rgba(255, 45, 123, 0.4);
 }
 
 .btn-confirm-bet:hover:not(:disabled) {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(255, 45, 123, 0.6);
 }
 
 .btn-confirm-bet:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* 결과 표시 오버레이 (빅휠 왼쪽) */
@@ -1328,18 +1368,20 @@ onMounted(() => {
 }
 
 .result-content-compact {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: linear-gradient(135deg, rgba(153, 69, 255, 0.9) 0%, rgba(0, 217, 255, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 0.75rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 30px rgba(153, 69, 255, 0.5);
   text-align: center;
 }
 
 .result-zone-name {
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--white);
+  color: #fff;
   margin-bottom: 0.5rem;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .result-amount {
@@ -1349,19 +1391,21 @@ onMounted(() => {
 .amount-win {
   font-size: 1rem;
   font-weight: 700;
-  color: #34d399;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .amount-lose {
   font-size: 1rem;
   font-weight: 700;
-  color: #fca5a5;
+  color: #ff6b6b;
+  text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
 }
 
 .tap-hint {
   margin-top: 0.5rem;
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
 }
 
@@ -1387,29 +1431,28 @@ onMounted(() => {
 .btn-next-round {
   width: 100%;
   padding: 0.75rem;
-  background: var(--primary);
-  color: var(--white);
+  background: linear-gradient(135deg, #00d9ff 0%, #9945ff 100%);
+  color: #fff;
   border: none;
   border-radius: 10px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
 }
 
 .btn-next-round:hover {
-  background: var(--primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 30px rgba(0, 217, 255, 0.6), 0 0 50px rgba(153, 69, 255, 0.3);
 }
 
 /* 베팅 확률 및 손익 분석 */
 .probability-box {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
-  border: 2px solid var(--primary);
+  background: rgba(153, 69, 255, 0.08);
+  border: 1px solid rgba(153, 69, 255, 0.3);
   border-radius: 12px;
 }
 
@@ -1417,8 +1460,9 @@ onMounted(() => {
   font-size: 0.875rem;
   font-weight: 700;
   text-align: center;
-  color: var(--primary);
+  color: #9945ff;
   margin-bottom: 0.5rem;
+  text-shadow: 0 0 10px rgba(153, 69, 255, 0.5);
 }
 
 .probability-items {
@@ -1433,7 +1477,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.5rem;
-  background: var(--white);
+  background: rgba(10, 10, 15, 0.5);
   border-radius: 8px;
   font-size: 0.7rem;
   border-left: 3px solid transparent;
@@ -1441,11 +1485,11 @@ onMounted(() => {
 }
 
 .probability-item.profit {
-  border-left-color: #10b981;
+  border-left-color: #00ff88;
 }
 
 .probability-item.loss {
-  border-left-color: #ef4444;
+  border-left-color: #ff3366;
 }
 
 .prob-icon {
@@ -1456,13 +1500,13 @@ onMounted(() => {
 .prob-name {
   flex: 1;
   font-weight: 600;
-  color: var(--dark);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.65rem;
 }
 
 .prob-percent {
   font-weight: 600;
-  color: var(--gray);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 0.65rem;
   min-width: 45px;
   text-align: right;
@@ -1476,11 +1520,13 @@ onMounted(() => {
 }
 
 .prob-profit.positive {
-  color: #10b981;
+  color: #00ff88;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
 }
 
 .prob-profit.negative {
-  color: #ef4444;
+  color: #ff3366;
+  text-shadow: 0 0 8px rgba(255, 51, 102, 0.4);
 }
 
 .probability-summary {
@@ -1510,27 +1556,31 @@ onMounted(() => {
 }
 
 .profit-item {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.2);
 }
 
 .profit-item span {
-  color: #059669;
+  color: rgba(0, 255, 136, 0.8);
 }
 
 .profit-item strong {
-  color: #10b981;
+  color: #00ff88;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
 }
 
 .loss-item {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(255, 51, 102, 0.1);
+  border: 1px solid rgba(255, 51, 102, 0.2);
 }
 
 .loss-item span {
-  color: #dc2626;
+  color: rgba(255, 51, 102, 0.8);
 }
 
 .loss-item strong {
-  color: #ef4444;
+  color: #ff3366;
+  text-shadow: 0 0 8px rgba(255, 51, 102, 0.4);
 }
 
 .expected-profit {
@@ -1538,9 +1588,9 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem;
-  border-top: 2px solid var(--primary);
+  border-top: 1px solid rgba(153, 69, 255, 0.3);
   font-size: 0.75rem;
-  color: var(--dark);
+  color: rgba(255, 255, 255, 0.7);
   font-weight: 600;
 }
 
@@ -1550,10 +1600,12 @@ onMounted(() => {
 }
 
 .expected-profit strong.positive {
-  color: #10b981;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .expected-profit strong.negative {
-  color: #ef4444;
+  color: #ff3366;
+  text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
 }
 </style>

@@ -113,14 +113,14 @@ onMounted(() => {
 .chips-page {
   min-height: calc(100vh - 130px);
   padding-bottom: 80px;
-  background: #f3f4f6;
+  background: linear-gradient(180deg, #1a0a2e 0%, #0d1117 50%, #0a1628 100%);
 }
 
 .page-header {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, rgba(255, 204, 0, 0.15) 0%, rgba(255, 170, 0, 0.1) 100%);
+  border-bottom: 1px solid rgba(255, 204, 0, 0.2);
   padding: 1rem;
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -130,6 +130,10 @@ onMounted(() => {
   font-size: 1.25rem;
   font-weight: 700;
   margin: 0;
+  background: linear-gradient(135deg, #ffcc00 0%, #ffaa00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .total-balance-header {
@@ -137,11 +141,14 @@ onMounted(() => {
   flex-direction: column;
   align-items: flex-end;
   font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .total-balance-header .amount {
   font-size: 1.125rem;
   font-weight: 700;
+  color: #ffcc00;
+  text-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
 }
 
 .content {
@@ -150,10 +157,12 @@ onMounted(() => {
 
 /* 칩 섹션 */
 .chips-section {
-  background: white;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
   padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .chips-grid {
@@ -167,59 +176,74 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem;
-  background: #f9fafb;
+  padding: 0.75rem;
+  background: rgba(10, 10, 15, 0.5);
   border-radius: 12px;
-  border: 2px solid #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s;
+}
+
+.chip-item:hover {
+  border-color: rgba(255, 204, 0, 0.3);
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.1);
 }
 
 .chip-svg {
   flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
 }
 
 .chip-input {
   flex: 1;
   padding: 0.5rem 0.75rem;
-  border: 2px solid #e5e7eb;
+  background: rgba(10, 10, 15, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   text-align: center;
-  transition: border-color 0.2s;
+  color: #fff;
+  transition: all 0.3s;
   min-width: 0;
 }
 
 .chip-input:focus {
   outline: none;
-  border-color: #f59e0b;
+  border-color: #ffcc00;
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+}
+
+.chip-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .chip-value {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #f59e0b;
+  color: #ffcc00;
   white-space: nowrap;
   min-width: 70px;
   text-align: right;
+  text-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
 }
 
 .btn-save {
   width: 100%;
   padding: 0.875rem;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
+  background: linear-gradient(135deg, #ffcc00 0%, #ffaa00 100%);
+  color: #0a0a0f;
   border: none;
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 25px rgba(255, 204, 0, 0.4);
 }
 
 .btn-save:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 35px rgba(255, 204, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .btn-save:active {

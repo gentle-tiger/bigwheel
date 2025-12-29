@@ -176,96 +176,121 @@ const formatChipType = (type) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+  padding: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
-  background: white;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 650px;
-  max-height: 90vh;
+  background: rgba(13, 17, 23, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 204, 0, 0.2);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 204, 0, 0.15);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
-  background: white;
+  background: rgba(13, 17, 23, 0.98);
+  backdrop-filter: blur(20px);
   z-index: 1;
-  border-radius: 16px 16px 0 0;
+  border-radius: 20px 20px 0 0;
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #1a1a1a;
+  background: linear-gradient(135deg, #ffcc00 0%, #ff9500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .close-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: #f5f5f5;
-  border: none;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s;
-  color: #666;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .close-button:hover {
-  background: #ef4444;
-  color: white;
+  background: rgba(255, 51, 102, 0.2);
+  border-color: #ff3366;
+  color: #ff3366;
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 1.25rem 1.5rem;
 }
 
 .current-chips-section,
 .add-chips-section,
 .preview-section {
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem;
 }
 
 .current-chips-section h3,
 .add-chips-section h3,
 .preview-section h3 {
-  font-size: 16px;
+  font-size: 0.85rem;
   font-weight: 600;
   margin-bottom: 12px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .loading {
   text-align: center;
   padding: 20px;
-  color: #999;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.85rem;
 }
 
 .chips-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
 }
 
 .chip-display {
-  background: #f5f5f5;
-  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
   border-radius: 12px;
   text-align: center;
   transition: all 0.2s;
@@ -273,108 +298,134 @@ const formatChipType = (type) => {
 
 .chip-display:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 204, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.1);
 }
 
 .chip-display.preview {
-  background: rgba(16, 185, 129, 0.1);
-  border: 2px solid #10b981;
+  background: rgba(0, 255, 136, 0.08);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.1);
 }
 
 .chip-type {
   display: block;
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 8px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 6px;
   font-weight: 500;
 }
 
 .chip-count {
   display: block;
-  font-size: 20px;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffcc00;
+  text-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
+}
+
+.chip-display.preview .chip-count {
+  color: #00ff88;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
 }
 
 .chips-input-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
 }
 
 .chip-input label {
   display: block;
-  font-size: 14px;
-  margin-bottom: 8px;
-  color: #666;
+  font-size: 0.75rem;
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.5);
   font-weight: 500;
 }
 
 .chip-input input {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #e0e0e0;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 0.95rem;
+  color: #fff;
   transition: all 0.2s;
+}
+
+.chip-input input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .chip-input input:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: #ffcc00;
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
+  background: rgba(255, 204, 0, 0.05);
 }
 
 .modal-footer {
   display: flex;
-  gap: 12px;
-  padding: 20px 24px;
-  border-top: 1px solid #e0e0e0;
+  gap: 10px;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   bottom: 0;
-  background: white;
-  border-radius: 0 0 16px 16px;
+  background: rgba(13, 17, 23, 0.98);
+  backdrop-filter: blur(20px);
+  border-radius: 0 0 20px 20px;
 }
 
 .button {
   flex: 1;
-  padding: 14px;
+  padding: 12px;
   border: none;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .button.primary {
-  background: #6366f1;
-  color: white;
+  background: linear-gradient(135deg, #ffcc00 0%, #ff9500 100%);
+  color: #0a0a0f;
+  box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
 }
 
 .button.primary:hover {
-  background: #4f46e5;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 30px rgba(255, 204, 0, 0.5);
 }
 
 .button.secondary {
-  background: #f5f5f5;
-  color: #666;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .button.secondary:hover {
-  background: #e0e0e0;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 /* Responsive */
 @media (max-width: 640px) {
+  .modal-content {
+    max-height: 90vh;
+  }
+
   .chips-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .chips-input-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .modal-body {
+    padding: 1rem 1.25rem;
   }
 }
 </style>

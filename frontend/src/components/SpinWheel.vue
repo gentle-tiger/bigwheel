@@ -177,6 +177,25 @@ const startSpin = () => {
   position: relative;
   width: 300px;
   height: 300px;
+  filter: drop-shadow(0 0 30px rgba(153, 69, 255, 0.3));
+}
+
+.wheel-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 45, 123, 0.2) 0%, rgba(153, 69, 255, 0.2) 50%, rgba(0, 217, 255, 0.2) 100%);
+  z-index: -1;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.01); }
 }
 
 .wheel-svg {
@@ -189,6 +208,16 @@ const startSpin = () => {
   transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99);
 }
 
+.wheel-wrapper.spinning::before {
+  animation: glowSpin 0.4s linear infinite;
+}
+
+@keyframes glowSpin {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
 .pointer {
   position: absolute;
   top: -10px;
@@ -198,27 +227,28 @@ const startSpin = () => {
   height: 0;
   border-left: 15px solid transparent;
   border-right: 15px solid transparent;
-  border-top: 25px solid #ef4444;
+  border-top: 25px solid #ff2d7b;
   z-index: 10;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 0 12px rgba(255, 45, 123, 0.7));
 }
 
 .spin-button {
   padding: 12px 32px;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
   color: white;
   border: none;
   border-radius: 12px;
   font-size: 1.125rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 25px rgba(153, 69, 255, 0.4);
   transition: all 0.3s;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .spin-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 0 40px rgba(153, 69, 255, 0.6), 0 0 60px rgba(0, 217, 255, 0.3);
 }
 
 .spin-button:active {

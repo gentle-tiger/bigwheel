@@ -200,7 +200,7 @@ const startSpin = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: radial-gradient(ellipse at center, rgba(26, 10, 46, 0.95) 0%, rgba(10, 10, 15, 0.98) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,12 +209,8 @@ const startSpin = () => {
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .spin-modal-content {
@@ -226,14 +222,8 @@ const startSpin = () => {
 }
 
 @keyframes scaleIn {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 .modal-header {
@@ -245,19 +235,42 @@ const startSpin = () => {
   font-size: 2rem;
   font-weight: 800;
   margin-bottom: 8px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 50%, #00d9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 20px rgba(153, 69, 255, 0.5));
 }
 
 .modal-subtitle {
-  font-size: 1.125rem;
-  opacity: 0.9;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .wheel-wrapper {
   position: relative;
-  width: 400px;
-  height: 400px;
-  filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.5));
+  width: 320px;
+  height: 320px;
+  filter: drop-shadow(0 0 40px rgba(153, 69, 255, 0.4));
+}
+
+.wheel-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 45, 123, 0.3) 0%, rgba(153, 69, 255, 0.3) 50%, rgba(0, 217, 255, 0.3) 100%);
+  z-index: -1;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
 }
 
 .wheel-svg {
@@ -270,6 +283,16 @@ const startSpin = () => {
   transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99);
 }
 
+.wheel-wrapper.spinning::before {
+  animation: glowSpin 0.5s linear infinite;
+}
+
+@keyframes glowSpin {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
 .pointer {
   position: absolute;
   top: -15px;
@@ -277,39 +300,36 @@ const startSpin = () => {
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  border-top: 35px solid #ef4444;
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-top: 32px solid #ff2d7b;
   z-index: 10;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 0 15px rgba(255, 45, 123, 0.8));
 }
 
 .spin-button {
-  padding: 16px 48px;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  padding: 14px 40px;
+  background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
   color: white;
   border: none;
-  border-radius: 16px;
-  font-size: 1.5rem;
+  border-radius: 14px;
+  font-size: 1.25rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 30px rgba(153, 69, 255, 0.5);
   transition: all 0.3s;
   animation: pulse 2s ease-in-out infinite;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(153, 69, 255, 0.5); }
+  50% { transform: scale(1.03); box-shadow: 0 0 50px rgba(153, 69, 255, 0.8); }
 }
 
 .spin-button:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.6);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 0 50px rgba(153, 69, 255, 0.8), 0 0 80px rgba(0, 217, 255, 0.4);
 }
 
 .spin-button:active {
@@ -322,29 +342,33 @@ const startSpin = () => {
   align-items: center;
   gap: 12px;
   color: white;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
+.spinning-text p {
+  background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .spinner-icon {
-  font-size: 3rem;
-  animation: rotate 2s linear infinite;
+  font-size: 2.5rem;
+  animation: rotate 1.5s linear infinite;
+  filter: drop-shadow(0 0 15px rgba(153, 69, 255, 0.6));
 }
 
 @keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* 반응형 - 모바일 */
 @media (max-width: 640px) {
   .wheel-wrapper {
-    width: 320px;
-    height: 320px;
+    width: 280px;
+    height: 280px;
   }
 
   .modal-title {
@@ -352,12 +376,18 @@ const startSpin = () => {
   }
 
   .modal-subtitle {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .spin-button {
-    padding: 12px 36px;
-    font-size: 1.25rem;
+    padding: 12px 32px;
+    font-size: 1.1rem;
+  }
+
+  .pointer {
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 28px solid #ff2d7b;
   }
 }
 </style>

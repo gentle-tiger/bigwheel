@@ -32,54 +32,67 @@
 
 <style scoped>
 .category-page {
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 130px);
+  background: linear-gradient(180deg, #1a0a2e 0%, #0d1117 50%, #0a1628 100%);
+  padding-bottom: 80px;
 }
 
 .page-title {
   text-align: center;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin: 2rem 0;
-  color: var(--dark);
+  margin: 1.5rem 0;
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 50%, #00d9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  max-width: 1000px;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  max-width: 400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
 }
 
 .game-card {
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 2rem;
   text-align: center;
-  box-shadow: 0 4px 12px var(--shadow);
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: all 0.3s;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .game-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+  border-color: rgba(153, 69, 255, 0.5);
+  box-shadow: 0 0 30px rgba(153, 69, 255, 0.3), 0 0 60px rgba(255, 45, 123, 0.15);
 }
 
 .game-icon {
   margin-bottom: 1rem;
+  filter: drop-shadow(0 0 15px rgba(153, 69, 255, 0.5));
 }
 
 .game-card h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--primary);
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 0.5rem;
 }
 
 .game-card p {
-  color: var(--gray);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.875rem;
 }
 </style>

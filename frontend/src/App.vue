@@ -27,11 +27,13 @@ onMounted(() => {
     <header class="header">
       <div class="header-container">
         <router-link to="/" class="logo">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 2 L12 22 M2 12 L22 12" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
+            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+            <path d="M12 2 L12 6 M12 18 L12 22 M2 12 L6 12 M18 12 L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
-          BigWheel
+          <span class="logo-text">BigWheel</span>
         </router-link>
       </div>
     </header>
@@ -39,38 +41,41 @@ onMounted(() => {
     <!-- Main Content -->
     <RouterView />
 
-    <!-- Bottom Navbar -->
+    <!-- Bottom Navbar - Floating Style -->
     <nav class="bottom-navbar">
       <router-link to="/" class="nav-item">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2"/>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span>홈</span>
       </router-link>
       <router-link to="/play" class="nav-item">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-          <path d="M12 2 L12 22 M2 12 L22 12" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.5"/>
+          <path d="M12 2 L12 6 M12 18 L12 22 M2 12 L6 12 M18 12 L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
         <span>플레이</span>
       </router-link>
       <router-link to="/statistics" class="nav-item">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9 3V15M15 9V21M3 11H21M5 3H19C20.1046 3 21 3.89543 21 5V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3Z" stroke="currentColor" stroke-width="2"/>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 20V10M12 20V4M6 20V14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span>통계</span>
       </router-link>
       <router-link to="/chips" class="nav-item">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-          <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
-          <path d="M12 3V6M12 18V21M21 12H18M6 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="12" cy="12" r="2" fill="currentColor"/>
         </svg>
         <span>칩</span>
       </router-link>
       <router-link to="/profile" class="nav-item">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2"/>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+          <path d="M4 20C4 17 7 14 12 14C17 14 20 17 20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
         <span>내 정보</span>
       </router-link>
@@ -80,22 +85,73 @@ onMounted(() => {
 
 <style>
 @import './assets/style.css';
+</style>
 
+<style scoped>
+.header {
+  background: rgba(13, 17, 23, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.header-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.75rem 1rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.logo svg {
+  color: var(--neon-pink, #ff2d7b);
+  filter: drop-shadow(0 0 10px rgba(255, 45, 123, 0.6));
+  animation: logo-pulse 3s ease-in-out infinite;
+}
+
+@keyframes logo-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(255, 45, 123, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(255, 45, 123, 0.8)) drop-shadow(0 0 25px rgba(255, 45, 123, 0.4));
+  }
+}
+
+.logo-text {
+  font-weight: 800;
+  font-size: 1.125rem;
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 50%, #00d9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+/* Button styles */
 button.btn-login {
   border: none;
-  background: var(--primary);
-  color: var(--white);
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 100%);
+  color: white;
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(255, 45, 123, 0.4);
 }
 
 button.btn-login:hover {
-  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 0 25px rgba(255, 45, 123, 0.6);
 }
 </style>

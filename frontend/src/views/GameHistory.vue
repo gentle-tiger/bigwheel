@@ -250,7 +250,7 @@ const selectedGame = ref(null)
 const filter = ref('ALL')  // 'ALL', 'ONLINE', 'OFFLINE'
 
 // 무한 스크롤 상태
-const page = ref(1)
+const page = ref(0)  // Spring Pageable은 0부터 시작
 const pageSize = 10
 const hasMore = ref(true)
 const loadingMore = ref(false)
@@ -369,109 +369,110 @@ onMounted(async () => {
 
 const fetchGames = async () => {
   loading.value = true
-  page.value = 1
+  page.value = 0  // 페이지 0부터 시작 (Spring Pageable)
   games.value = []
 
-  // 목업 데이터 사용
-  await new Promise(resolve => setTimeout(resolve, 500)) // 로딩 시뮬레이션
-
-  const allGames = createMockGames()
-
-  // 필터링
-  let filteredGames = filter.value === 'ALL'
-    ? allGames
-    : allGames.filter(game => game.gameMode === filter.value)
-
-  // 페이지네이션: 첫 페이지만 로드
-  const start = 0
-  const end = pageSize
-  games.value = filteredGames.slice(start, end)
-
-  // 더 불러올 데이터가 있는지 확인
-  hasMore.value = filteredGames.length > pageSize
-
-  loading.value = false
-
-  /* 실제 API 사용 시 아래 코드 활성화
   const userId = localStorage.getItem('userId')
 
   if (!userId) {
-    const localGames = localStorage.getItem('gameHistory')
-    if (localGames) {
-      try {
-        games.value = JSON.parse(localGames)
-      } catch (error) {
-        console.error('로컬 게임 기록 파싱 실패:', error)
-      }
-    }
+    console.warn('사용자 ID가 없습니다. 로그인이 필요합니다.')
     loading.value = false
     return
   }
 
   try {
-    let url = `/api/v1/games/${userId}`
-    if (filter.value !== 'ALL') {
-      url += `?gameMode=${filter.value}`
-    }
+    // 실제 API 호출
+    const response = await gameApi.getMyGames(userId, {
+      gameMode: filter.value,
+      page: page.value,
+      size: pageSize
+    })
 
-    const response = await gameApi.getUserGames(userId, filter.value !== 'ALL' ? filter.value : undefined)
-    games.value = response.data
+    // Spring Page 응답 파싱
+    const pageData = response.data
+    games.value = pageData.content || []  // 실제 게임 데이터
+    hasMore.value = !pageData.last  // 마지막 페이지인지 확인
+
+    console.log('✅ 게임 기록 조회 성공:', {
+      total: pageData.totalElements,
+      currentPage: pageData.number,
+      totalPages: pageData.totalPages,
+      loaded: games.value.length
+    })
+
   } catch (error) {
-    console.error('게임 기록 조회 실패:', error)
-    const localGames = localStorage.getItem('gameHistory')
-    if (localGames) {
-      try {
-        games.value = JSON.parse(localGames)
-      } catch (parseError) {
-        console.error('로컬 게임 기록 파싱 실패:', parseError)
-      }
-    }
+    console.error('❌ 게임 기록 조회 실패:', error)
+
+    // 목업 데이터로 폴백 (개발 중에만)
+    console.warn('⚠️ 목업 데이터 사용 (개발 모드)')
+    const allGames = createMockGames()
+    let filteredGames = filter.value === 'ALL'
+      ? allGames
+      : allGames.filter(game => game.gameMode === filter.value)
+
+    games.value = filteredGames.slice(0, pageSize)
+    hasMore.value = filteredGames.length > pageSize
   } finally {
     loading.value = false
   }
-  */
 }
 
 const loadMoreGames = async () => {
   if (loadingMore.value || !hasMore.value) return
 
   loadingMore.value = true
+  page.value++  // 다음 페이지
 
-  // 목업 데이터 사용
-  await new Promise(resolve => setTimeout(resolve, 500)) // 로딩 시뮬레이션
+  const userId = localStorage.getItem('userId')
 
-  const allGames = createMockGames()
+  if (!userId) {
+    loadingMore.value = false
+    return
+  }
 
-  // 필터링
-  let filteredGames = filter.value === 'ALL'
-    ? allGames
-    : allGames.filter(game => game.gameMode === filter.value)
-
-  // 다음 페이지 데이터 로드
-  page.value++
-  const start = (page.value - 1) * pageSize
-  const end = page.value * pageSize
-  const newGames = filteredGames.slice(start, end)
-
-  // 기존 게임 목록에 추가
-  games.value = [...games.value, ...newGames]
-
-  // 더 불러올 데이터가 있는지 확인
-  hasMore.value = filteredGames.length > page.value * pageSize
-
-  loadingMore.value = false
-
-  /* 실제 API 사용 시
   try {
-    const response = await gameApi.getUserGames(userId, filter.value !== 'ALL' ? filter.value : undefined, page.value)
-    games.value = [...games.value, ...response.data.games]
-    hasMore.value = response.data.hasMore
+    // 다음 페이지 데이터 로드
+    const response = await gameApi.getMyGames(userId, {
+      gameMode: filter.value,
+      page: page.value,
+      size: pageSize
+    })
+
+    // Spring Page 응답 파싱
+    const pageData = response.data
+    const newGames = pageData.content || []
+
+    // 기존 목록에 추가
+    games.value = [...games.value, ...newGames]
+    hasMore.value = !pageData.last
+
+    console.log('✅ 추가 게임 로드 성공:', {
+      page: pageData.number,
+      loaded: newGames.length,
+      total: games.value.length,
+      hasMore: hasMore.value
+    })
+
   } catch (error) {
-    console.error('더 많은 게임 로드 실패:', error)
+    console.error('❌ 추가 게임 로드 실패:', error)
+
+    // 목업 데이터로 폴백
+    console.warn('⚠️ 목업 데이터 사용 (개발 모드)')
+    const allGames = createMockGames()
+    let filteredGames = filter.value === 'ALL'
+      ? allGames
+      : allGames.filter(game => game.gameMode === filter.value)
+
+    const start = page.value * pageSize
+    const end = (page.value + 1) * pageSize
+    const newGames = filteredGames.slice(start, end)
+
+    games.value = [...games.value, ...newGames]
+    hasMore.value = filteredGames.length > (page.value + 1) * pageSize
+
   } finally {
     loadingMore.value = false
   }
-  */
 }
 
 const setupIntersectionObserver = () => {
@@ -591,14 +592,14 @@ const calculateReturnRate = (game) => {
 <style scoped>
 .game-history-page {
   min-height: calc(100vh - 100px);
-  background: var(--light-gray);
-  padding-bottom: 2rem;
+  background: linear-gradient(180deg, #1a0a2e 0%, #0d1117 50%, #0a1628 100%);
+  padding-bottom: 80px;
 }
 
 .main-content {
   max-width: 800px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1rem;
 }
 
 /* Header */
@@ -612,34 +613,34 @@ const calculateReturnRate = (game) => {
 /* Filter Section */
 .filter-section {
   display: flex;
-  gap: 10px;
-  margin-bottom: 2rem;
-  padding: 0 0px;
+  gap: 8px;
+  margin-bottom: 1rem;
+  padding: 0;
 }
 
 .filter-button {
   flex: 1;
-  padding: 12px 20px;
-  border: 2px solid var(--border-color, #e0e0e0);
-  border-radius: 12px;
-  background: var(--white);
-  color: var(--text-secondary, #666);
+  padding: 10px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   transition: all 0.3s;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
 }
 
 .filter-button:hover {
-  border-color: var(--primary, #6366f1);
-  color: var(--primary, #6366f1);
+  border-color: rgba(153, 69, 255, 0.5);
+  color: #9945ff;
 }
 
 .filter-button.active {
-  background: var(--primary, #6366f1);
+  background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
   color: white;
-  border-color: var(--primary, #6366f1);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  border-color: transparent;
+  box-shadow: 0 0 20px rgba(153, 69, 255, 0.4);
 }
 
 .back-button {
@@ -648,25 +649,29 @@ const calculateReturnRate = (game) => {
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: var(--white);
-  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 8px var(--shadow);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .back-button:hover {
-  background: var(--primary);
-  color: var(--white);
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 100%);
+  color: #fff;
+  border-color: transparent;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 15px rgba(255, 45, 123, 0.4);
 }
 
 .page-title {
-  font-size: 2rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--dark);
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 50%, #00d9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
 }
 
@@ -678,13 +683,14 @@ const calculateReturnRate = (game) => {
   justify-content: center;
   padding: 4rem 0;
   gap: 1rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .spinner {
   width: 50px;
   height: 50px;
-  border: 4px solid var(--light-gray);
-  border-top: 4px solid var(--primary);
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid #9945ff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -700,45 +706,48 @@ const calculateReturnRate = (game) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: 3rem 2rem;
   text-align: center;
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 20px;
-  box-shadow: 0 4px 12px var(--shadow);
 }
 
 .empty-state svg {
   margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .empty-state h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--dark);
+  color: #fff;
   margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-  color: var(--gray);
-  margin-bottom: 2rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 1.5rem;
 }
 
 .play-button {
-  padding: 1rem 2rem;
-  background: var(--primary);
-  color: var(--white);
+  padding: 0.875rem 2rem;
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 100%);
+  color: #fff;
   border: none;
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
+  box-shadow: 0 0 20px rgba(255, 45, 123, 0.4);
 }
 
 .play-button:hover {
-  background: var(--secondary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 30px rgba(255, 45, 123, 0.6);
 }
 
 /* Games List */
@@ -749,26 +758,29 @@ const calculateReturnRate = (game) => {
 }
 
 .game-card {
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
-  padding: 1rem 1.25rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
   cursor: pointer;
   transition: all 0.2s;
   border-left: 4px solid transparent;
 }
 
 .game-card.win {
-  border-left-color: #10b981;
+  border-left-color: #00ff88;
 }
 
 .game-card.loss {
-  border-left-color: #ef4444;
+  border-left-color: #ff3366;
 }
 
 .game-card:hover {
   transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 20px rgba(153, 69, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Card Header */
@@ -782,47 +794,50 @@ const calculateReturnRate = (game) => {
 .game-info {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .result-indicator {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
-  color: white;
+  color: #0a0a0f;
 }
 
 .result-indicator.win {
-  background: #10b981;
+  background: #00ff88;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
 }
 
 .result-indicator.loss {
-  background: #ef4444;
+  background: #ff3366;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255, 51, 102, 0.4);
 }
 
 .game-title {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: var(--dark, #1a1a1a);
+  color: #fff;
 }
 
 .game-mode {
-  font-size: 0.8rem;
-  padding: 4px 10px;
-  background: var(--light-gray, #f5f5f5);
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  background: rgba(153, 69, 255, 0.2);
   border-radius: 6px;
-  color: var(--gray, #666);
+  color: #9945ff;
   font-weight: 600;
 }
 
 .game-date {
-  font-size: 0.85rem;
-  color: var(--gray, #666);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
   font-weight: 500;
 }
 
@@ -830,31 +845,31 @@ const calculateReturnRate = (game) => {
 .game-card-stats {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
 }
 
 .stat-label {
-  font-size: 0.75rem;
-  color: var(--gray, #999);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
   font-weight: 500;
 }
 
 .stat-value {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: var(--dark, #1a1a1a);
+  color: #fff;
 }
 
 .arrow {
-  font-size: 1.2rem;
-  color: var(--gray, #ccc);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
 }
 
@@ -863,16 +878,18 @@ const calculateReturnRate = (game) => {
 }
 
 .profit-value {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
 }
 
 .profit-value.profit {
-  color: #10b981;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .profit-value.loss {
-  color: #ef4444;
+  color: #ff3366;
+  text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
 }
 
 /* Modal */
@@ -882,7 +899,7 @@ const calculateReturnRate = (game) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -891,32 +908,38 @@ const calculateReturnRate = (game) => {
 }
 
 .modal-content {
-  background: var(--white);
-  border-radius: 24px;
-  max-width: 600px;
+  background: rgba(13, 17, 23, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  max-width: 500px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(153, 69, 255, 0.2);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--light-gray);
+  padding: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: sticky;
   top: 0;
-  background: var(--white);
+  background: rgba(13, 17, 23, 0.98);
   z-index: 1;
-  border-radius: 24px 24px 0 0;
+  border-radius: 20px 20px 0 0;
 }
 
 .modal-header h2 {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--dark);
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
 }
 
@@ -924,62 +947,66 @@ const calculateReturnRate = (game) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: var(--light-gray);
-  border: none;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .close-button:hover {
-  background: var(--danger);
-  color: var(--white);
+  background: #ff3366;
+  border-color: #ff3366;
+  color: #fff;
 }
 
 .modal-body {
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
 /* Detail Sections */
 .detail-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .detail-section h3 {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: var(--dark);
-  margin-bottom: 1rem;
+  color: #9945ff;
+  margin-bottom: 0.75rem;
 }
 
 .detail-value {
-  font-size: 1rem;
-  color: var(--gray);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
   margin: 0;
 }
 
 .result-badge.large {
   display: inline-block;
-  padding: 0.75rem 1.5rem;
-  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 8px;
 }
 
 /* Analysis Grid */
 .analysis-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
+  gap: 10px;
 }
 
 .analysis-item {
-  background: var(--light-gray, #f5f5f5);
-  padding: 1rem;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.75rem;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .analysis-item.full-width {
@@ -987,133 +1014,139 @@ const calculateReturnRate = (game) => {
 }
 
 .analysis-label {
-  color: var(--text-secondary, #666);
-  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
   font-weight: 500;
 }
 
 .analysis-value {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--dark, #1a1a1a);
+  color: #fff;
 }
 
 .analysis-value.win {
-  color: #10b981;
+  color: #00ff88;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
 }
 
 .analysis-value.lose {
-  color: #ef4444;
+  color: #ff3366;
+  text-shadow: 0 0 8px rgba(255, 51, 102, 0.4);
 }
 
 .analysis-value.profit {
-  color: #10b981;
+  color: #00ff88;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
 }
 
 .analysis-value.loss {
-  color: #ef4444;
+  color: #ff3366;
+  text-shadow: 0 0 8px rgba(255, 51, 102, 0.4);
 }
 
 /* Bet Details */
 .bet-details {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .bet-zone {
-  background: var(--light-gray);
-  border-radius: 12px;
-  padding: 1rem;
-  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.75rem;
   transition: all 0.3s;
 }
 
 .bet-zone.winning-zone {
-  border-color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(0, 255, 136, 0.3);
+  background: rgba(0, 255, 136, 0.08);
 }
 
 .zone-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .zone-name {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
   display: inline-block;
 }
 
 .win-badge {
-  background: #10b981;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
+  background: #00ff88;
+  color: #0a0a0f;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 11px;
   font-weight: 600;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
 }
 
 .lose-badge {
-  background: var(--gray, #999);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 11px;
   font-weight: 600;
 }
 
-.zone-name.silver { background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 100%); color: #666; }
+.zone-name.silver { background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 100%); color: #333; }
 .zone-name.gold { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #8B4513; }
-.zone-name.purple { background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%); color: white; }
-.zone-name.diamond { background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%); color: white; }
-.zone-name.bigwheel { background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%); color: white; }
+.zone-name.purple { background: linear-gradient(135deg, #9945ff 0%, #7c3aed 100%); color: white; }
+.zone-name.diamond { background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%); color: white; }
+.zone-name.bigwheel { background: linear-gradient(135deg, #ff2d7b 0%, #c0392b 100%); color: white; }
 
 .chip-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .chip-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem;
-  background: var(--white);
-  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  background: rgba(10, 10, 15, 0.5);
+  border-radius: 6px;
 }
 
 .chip-type {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--primary);
+  color: #ff2d7b;
 }
 
 .chip-count {
-  font-size: 0.85rem;
-  color: var(--gray);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* Summary */
 .summary-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .summary-item {
-  background: var(--light-gray);
-  padding: 1rem;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.75rem;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .summary-item.full-width {
@@ -1121,27 +1154,30 @@ const calculateReturnRate = (game) => {
 }
 
 .summary-label {
-  font-size: 0.85rem;
-  color: var(--gray);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
   font-weight: 500;
 }
 
 .summary-value {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--dark);
+  color: #fff;
 }
 
 .summary-value.win {
-  color: #f59e0b;
+  color: #ffcc00;
+  text-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
 }
 
 .summary-value.profit {
-  color: #10b981;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .summary-value.loss {
-  color: #ef4444;
+  color: #ff3366;
+  text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
 }
 
 /* Infinite Scroll Elements */
@@ -1155,37 +1191,38 @@ const calculateReturnRate = (game) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 0;
-  gap: 0.75rem;
+  padding: 1.5rem 0;
+  gap: 0.5rem;
 }
 
 .loading-more p {
-  color: var(--gray);
-  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
 }
 
 .spinner-small {
-  width: 30px;
-  height: 30px;
-  border: 3px solid var(--light-gray);
-  border-top: 3px solid var(--primary);
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #9945ff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 .no-more-data {
   text-align: center;
-  padding: 2rem 0;
-  color: var(--gray);
-  font-size: 0.9rem;
+  padding: 1.5rem 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
 }
 
 .no-more-data p {
   margin: 0;
-  padding: 1rem;
-  background: var(--light-gray);
-  border-radius: 12px;
-  color: var(--text-secondary, #666);
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* Responsive */

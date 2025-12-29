@@ -17,13 +17,46 @@ export const userApi = {
 }
 
 export const gameApi = {
-  // 사용자별 게임 기록 조회
-  getUserGames(userId) {
-    return axios.get(`${API_BASE_URL}/v1/games/${userId}`)
+  // 내 게임 기록 조회 (페이징 + 필터링)
+  getMyGames(userId, params = {}) {
+    const { gameMode, page = 0, size = 10 } = params
+
+    // 쿼리 파라미터 구성
+    const queryParams = new URLSearchParams()
+    if (gameMode && gameMode !== 'ALL') {
+      queryParams.append('gameMode', gameMode)
+    }
+    queryParams.append('page', page)
+    queryParams.append('size', size)
+
+    return axios.get(`${API_BASE_URL}/v1/games?${queryParams.toString()}`, {
+      headers: {
+        'X-User-Id': userId
+      }
+    })
   },
 
-  // 전체 게임 기록 조회
-  getAllGames() {
-    return axios.get(`${API_BASE_URL}/v1/games`)
+  // 특정 게임 조회
+  getGame(gameId, userId) {
+    return axios.get(`${API_BASE_URL}/v1/games/${gameId}`, {
+      headers: {
+        'X-User-Id': userId
+      }
+    })
+  },
+
+  // 게임 저장
+  saveGame(gameData) {
+    const userId = gameData.userId || localStorage.getItem('userId')
+    return axios.post(`${API_BASE_URL}/v1/games`, gameData, {
+      headers: {
+        'X-User-Id': userId
+      }
+    })
+  },
+
+  // 베팅 구역 정보 조회
+  getBetZones() {
+    return axios.get(`${API_BASE_URL}/v1/games/zones`)
   }
 }

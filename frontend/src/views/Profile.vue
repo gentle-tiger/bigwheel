@@ -188,31 +188,37 @@ const handleLogout = () => {
 
 <style scoped>
 .profile-page {
-  min-height: calc(100vh - 200px);
-  background: var(--light-gray);
+  min-height: calc(100vh - 130px);
+  background: linear-gradient(180deg, #1a0a2e 0%, #0d1117 50%, #0a1628 100%);
+  padding-bottom: 80px;
 }
 
 .page-title {
   text-align: center;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin: 2rem 0;
-  color: var(--dark);
+  margin: 1.5rem 0;
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 50%, #00d9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .main-content {
   max-width: 600px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1rem;
 }
 
 /* Profile Card */
 .profile-card {
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 20px;
-  padding: 3rem 2rem;
-  box-shadow: 0 4px 12px var(--shadow);
-  margin-bottom: 2rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .profile-info-wrapper {
@@ -220,7 +226,7 @@ const handleLogout = () => {
   flex-direction: row !important;
   justify-content: space-between !important;
   align-items: flex-start !important;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .profile-left {
@@ -235,43 +241,44 @@ const handleLogout = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100px;
-  height: 100px;
-  margin-bottom: 1rem;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 0.75rem;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 100%);
+  box-shadow: 0 0 30px rgba(255, 45, 123, 0.4);
 }
 
 .profile-nickname {
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--dark);
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 /* Chips Display */
 .chips-container {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: flex-start;
 }
 
 .chip-column {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .chip-display {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .chip-count {
-  font-size: 0.75rem;
-  color: var(--gray);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
   font-weight: 600;
   min-width: 35px;
 }
@@ -280,7 +287,7 @@ const handleLogout = () => {
 .action-section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .chip-input-button {
@@ -289,23 +296,22 @@ const handleLogout = () => {
   justify-content: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 1.25rem;
-  background: var(--white);
-  color: #10b981;
-  border: 2px solid #10b981;
+  padding: 1rem;
+  background: transparent;
+  color: #00ff88;
+  border: 2px solid #00ff88;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .chip-input-button:hover {
-  background: #10b981;
-  color: var(--white);
+  background: #00ff88;
+  color: #0a0a0f;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 25px rgba(0, 255, 136, 0.5);
 }
 
 .game-history-button {
@@ -314,23 +320,22 @@ const handleLogout = () => {
   justify-content: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 1.25rem;
-  background: var(--white);
-  color: var(--primary);
-  border: 2px solid var(--primary);
+  padding: 1rem;
+  background: transparent;
+  color: #00d9ff;
+  border: 2px solid #00d9ff;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .game-history-button:hover {
-  background: var(--primary);
-  color: var(--white);
+  background: #00d9ff;
+  color: #0a0a0f;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 25px rgba(0, 217, 255, 0.5);
 }
 
 .game-history-button svg {
@@ -343,23 +348,22 @@ const handleLogout = () => {
   justify-content: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 1.25rem;
-  background: var(--white);
-  color: var(--danger);
-  border: 2px solid var(--danger);
+  padding: 1rem;
+  background: transparent;
+  color: #ff3366;
+  border: 2px solid #ff3366;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .logout-button:hover {
-  background: var(--danger);
-  color: var(--white);
+  background: #ff3366;
+  color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 25px rgba(255, 51, 102, 0.5);
 }
 
 .logout-button svg {
@@ -368,11 +372,11 @@ const handleLogout = () => {
 
 @media (max-width: 768px) {
   .page-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
 
   .profile-nickname {
-    font-size: 1.5rem;
+    font-size: 1rem;
   }
 
   .profile-info-wrapper {
@@ -380,8 +384,8 @@ const handleLogout = () => {
   }
 
   .profile-avatar {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
   }
 
   .chip-display svg {
@@ -390,7 +394,7 @@ const handleLogout = () => {
   }
 
   .chip-count {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
   }
 }
 </style>
