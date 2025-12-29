@@ -86,7 +86,6 @@ body {
     color: var(--text-primary);
     background: var(--bg-primary);
     line-height: 1.6;
-    padding-bottom: 100px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -218,13 +217,14 @@ a {
 }
 
 /* ============================================
-   Main Content
+   Main Content - 스크롤 영역
    ============================================ */
 
 .main-content {
-    max-width: var(--app-max-width);
-    margin: 0 auto;
-    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ============================================
@@ -468,29 +468,26 @@ a {
 }
 
 /* ============================================
-   Bottom Navbar - Floating Style
+   Bottom Navbar - 430px 컨테이너 내부 고정
    ============================================ */
 
 .bottom-navbar {
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 32px);
-    max-width: calc(var(--app-max-width) - 32px);
-    background: rgba(13, 17, 23, 0.9);
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    background: rgba(13, 17, 23, 0.98);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--border-radius-xl);
+    border-top: 1px solid var(--glass-border);
     display: flex;
     justify-content: space-around;
     padding: 0.5rem 0.25rem;
-    z-index: 1000;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    z-index: 100;
     box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        0 0 20px var(--neon-pink-glow),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        0 -4px 20px rgba(0, 0, 0, 0.3),
+        0 0 15px var(--neon-pink-glow);
 }
 
 .nav-item {
