@@ -32,30 +32,23 @@ body {
     margin: 0;
     display: flex;
     justify-content: center;
+    min-width: 320px;
     min-height: 100vh;
-    /* 430px보다 작은 화면에서 가로 스크롤 허용 */
-    overflow-x: auto;
 }
 
-/* 앱 컨테이너 - 430px 완전 고정 너비 (웹앱 스타일) */
+/* 앱 컨테이너 - 430px 고정 너비 */
 #app {
-    width: 430px;
-    min-width: 430px;
+    width: 100%;
     max-width: 430px;
     min-height: 100vh;
-    height: 100vh;
     background: #0d1117;
     position: relative;
     overflow-x: hidden;
-    overflow-y: auto;
     box-shadow:
         -1px 0 0 rgba(255, 255, 255, 0.05),
         1px 0 0 rgba(255, 255, 255, 0.05),
         0 0 80px rgba(0, 0, 0, 0.5),
         0 0 120px rgba(153, 69, 255, 0.1);
-    /* 내부 스크롤을 위한 설정 */
-    display: flex;
-    flex-direction: column;
 }
 
 /* PC 환경에서 사이드 영역에 장식적 요소 표시 */

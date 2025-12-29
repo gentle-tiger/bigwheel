@@ -70,10 +70,10 @@ onMounted(() => {
 
 <style scoped>
 .floating-mode-selector {
-  position: absolute;
-  bottom: 80px;
-  right: 16px;
-  z-index: 99;
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  z-index: 1000;
 }
 
 .mode-toggle-btn {

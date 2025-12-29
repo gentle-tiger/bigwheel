@@ -22,8 +22,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="app-wrapper">
-    <!-- Header - 430px 컨테이너 내부 고정 -->
+  <div id="app">
+    <!-- Header -->
     <header class="header">
       <div class="header-container">
         <router-link to="/" class="logo">
@@ -38,12 +38,10 @@ onMounted(() => {
       </div>
     </header>
 
-    <!-- Main Content - 스크롤 영역 -->
-    <main class="main-content">
-      <RouterView />
-    </main>
+    <!-- Main Content -->
+    <RouterView />
 
-    <!-- Bottom Navbar - 430px 컨테이너 내부 고정 -->
+    <!-- Bottom Navbar - Floating Style -->
     <nav class="bottom-navbar">
       <router-link to="/" class="nav-item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -90,32 +88,11 @@ onMounted(() => {
 </style>
 
 <style scoped>
-/* 앱 래퍼 - 430px 고정 컨테이너 내부 레이아웃 */
-.app-wrapper {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 100vh;
-  width: 100%;
-}
-
-/* 메인 컨텐츠 - 스크롤 영역 */
-.main-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
 .header {
-  flex-shrink: 0;
-  background: rgba(13, 17, 23, 0.98);
+  background: rgba(13, 17, 23, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  position: sticky;
-  top: 0;
-  z-index: 100;
 }
 
 .header-container {
