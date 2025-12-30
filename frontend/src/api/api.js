@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8080/api'
+// 환경변수에서 API URL 가져오기 (없으면 localhost 사용)
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
 export const userApi = {
   register(user) {
