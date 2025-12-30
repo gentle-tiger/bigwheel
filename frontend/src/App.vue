@@ -1,6 +1,6 @@
 <script setup>
 import { RouterView } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const isLoggedIn = ref(false)
 
@@ -15,9 +15,210 @@ const logout = () => {
   window.location.href = '/'
 }
 
+// 커서 따라다니는 글로우 효과 (잔상)
+const isOutsideApp = ref(false)
+const mousePos = ref({ x: 0, y: 0 })
+const prevMousePos = ref({ x: 0, y: 0 })  // 이전 마우스 위치 (보간용)
+
+// 떠다니는 동그라미들
+const orbs = ref([])
+const orbElements = ref([])
+let animationId = null
+
+// 동그라미 색상들
+const orbColors = [
+  { bg: 'rgba(255, 45, 123, 0.6)', shadow: 'rgba(255, 45, 123, 0.8)' },   // 핑크
+  { bg: 'rgba(0, 217, 255, 0.6)', shadow: 'rgba(0, 217, 255, 0.8)' },     // 시안
+  { bg: 'rgba(153, 69, 255, 0.6)', shadow: 'rgba(153, 69, 255, 0.8)' },   // 퍼플
+  { bg: 'rgba(0, 255, 136, 0.5)', shadow: 'rgba(0, 255, 136, 0.7)' },     // 그린
+  { bg: 'rgba(255, 204, 0, 0.5)', shadow: 'rgba(255, 204, 0, 0.7)' },     // 옐로우
+]
+
+// 동그라미 초기화
+const initOrbs = () => {
+  const orbCount = 15
+  orbs.value = []
+
+  for (let i = 0; i < orbCount; i++) {
+    const color = orbColors[i % orbColors.length]
+    const size = 10 + Math.random() * 25
+    orbs.value.push({
+      id: i,
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      baseX: Math.random() * window.innerWidth,
+      baseY: Math.random() * window.innerHeight,
+      size: size,
+      color: color,
+      speedX: (Math.random() - 0.5) * 0.5,
+      speedY: (Math.random() - 0.5) * 0.5,
+      phase: Math.random() * Math.PI * 2
+    })
+  }
+
+  // DOM 요소 생성
+  createOrbElements()
+  // 애니메이션 시작
+  animateOrbs()
+}
+
+// DOM 요소 생성
+const createOrbElements = () => {
+  // 기존 요소 제거
+  orbElements.value.forEach(el => el.remove())
+  orbElements.value = []
+
+  orbs.value.forEach(orb => {
+    const el = document.createElement('div')
+    el.className = 'floating-orb'
+    el.style.width = orb.size + 'px'
+    el.style.height = orb.size + 'px'
+    el.style.background = `radial-gradient(circle, ${orb.color.bg} 0%, transparent 70%)`
+    el.style.boxShadow = `0 0 ${orb.size/2}px ${orb.color.shadow}`
+    document.documentElement.appendChild(el)  // html에 붙임 (body 뒤에)
+    orbElements.value.push(el)
+  })
+}
+
+// 애니메이션 루프
+const animateOrbs = () => {
+  const time = Date.now() * 0.001
+  const appWidth = 400
+  const windowCenter = window.innerWidth / 2
+  const appLeft = windowCenter - appWidth / 2
+  const appRight = windowCenter + appWidth / 2
+
+  orbs.value.forEach((orb, i) => {
+    // 기본 떠다니는 움직임
+    orb.baseX += orb.speedX
+    orb.baseY += orb.speedY
+
+    // 화면 경계 반사
+    if (orb.baseX < 0 || orb.baseX > window.innerWidth) orb.speedX *= -1
+    if (orb.baseY < 0 || orb.baseY > window.innerHeight) orb.speedY *= -1
+
+    // 물결치는 움직임
+    const waveX = Math.sin(time + orb.phase) * 20
+    const waveY = Math.cos(time * 0.8 + orb.phase) * 20
+
+    // 목표 위치 (기본 위치 + 물결)
+    let targetX = orb.baseX + waveX
+    let targetY = orb.baseY + waveY
+
+    // 마우스가 앱 바깥에 있으면 마우스 쪽으로 끌려감
+    if (isOutsideApp.value) {
+      const dx = mousePos.value.x - targetX
+      const dy = mousePos.value.y - targetY
+      const dist = Math.sqrt(dx * dx + dy * dy)
+
+      if (dist < 300) {
+        const force = (300 - dist) / 300 * 0.3
+        targetX += dx * force
+        targetY += dy * force
+      }
+    }
+
+    // 부드러운 이동
+    orb.x += (targetX - orb.x) * 0.05
+    orb.y += (targetY - orb.y) * 0.05
+
+    // DOM 업데이트
+    if (orbElements.value[i]) {
+      // 앱 영역 안에 있으면 숨김
+      const isInApp = orb.x > appLeft && orb.x < appRight
+      orbElements.value[i].style.opacity = isInApp ? '0' : '1'
+      orbElements.value[i].style.left = orb.x + 'px'
+      orbElements.value[i].style.top = orb.y + 'px'
+    }
+  })
+
+  animationId = requestAnimationFrame(animateOrbs)
+}
+
+const handleMouseMove = (e) => {
+  const currentX = e.clientX
+  const currentY = e.clientY
+
+  // 앱 영역(400px) 바깥인지 체크
+  const appWidth = 400
+  const windowCenter = window.innerWidth / 2
+  const appLeft = windowCenter - appWidth / 2
+  const appRight = windowCenter + appWidth / 2
+
+  // 앱 바깥 영역에서만 잔상 생성
+  if (currentX < appLeft || currentX > appRight) {
+    isOutsideApp.value = true
+
+    // 이전 위치와 현재 위치 사이를 보간해서 끊김 방지
+    const prevX = prevMousePos.value.x || currentX
+    const prevY = prevMousePos.value.y || currentY
+    const dist = Math.sqrt((currentX - prevX) ** 2 + (currentY - prevY) ** 2)
+
+    // 거리가 멀면 중간에 점들 추가
+    const steps = Math.max(1, Math.floor(dist / 5))  // 5px마다 점 하나
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps
+      const x = prevX + (currentX - prevX) * t
+      const y = prevY + (currentY - prevY) * t
+      createTrailDot(x, y)
+    }
+  } else {
+    isOutsideApp.value = false
+  }
+
+  // 현재 위치 저장
+  prevMousePos.value = { x: currentX, y: currentY }
+  mousePos.value = { x: currentX, y: currentY }
+}
+
+// 잔상 점 생성
+const createTrailDot = (x, y) => {
+  const dot = document.createElement('div')
+  dot.className = 'trail-dot'
+  dot.style.left = x + 'px'
+  dot.style.top = y + 'px'
+  document.documentElement.appendChild(dot)  // html에 붙임 (body/앱 뒤에)
+
+  setTimeout(() => {
+    dot.classList.add('fade-out')
+  }, 10)
+
+  setTimeout(() => {
+    dot.remove()
+  }, 700)
+}
+
+const handleMouseLeave = () => {
+  isOutsideApp.value = false
+}
+
+// 창 크기 변경 시 재초기화
+const handleResize = () => {
+  orbs.value.forEach(orb => {
+    orb.baseX = Math.min(orb.baseX, window.innerWidth)
+    orb.baseY = Math.min(orb.baseY, window.innerHeight)
+  })
+}
+
 onMounted(() => {
   checkLogin()
   window.addEventListener('storage', checkLogin)
+  window.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('mouseleave', handleMouseLeave)
+  window.addEventListener('resize', handleResize)
+
+  // 떠다니는 동그라미 초기화
+  initOrbs()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('mousemove', handleMouseMove)
+  document.removeEventListener('mouseleave', handleMouseLeave)
+  window.removeEventListener('resize', handleResize)
+
+  // 애니메이션 정리
+  if (animationId) cancelAnimationFrame(animationId)
+  orbElements.value.forEach(el => el.remove())
 })
 </script>
 
@@ -85,6 +286,51 @@ onMounted(() => {
 
 <style>
 @import './assets/style.css';
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 붓펜 잔상 효과 */
+.trail-dot {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;  /* body(z-index:10)보다 낮게 */
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 45, 123, 0.9) 0%,
+    rgba(153, 69, 255, 0.6) 50%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 6px rgba(255, 45, 123, 0.8),
+    0 0 12px rgba(153, 69, 255, 0.5);
+  opacity: 1;
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.trail-dot.fade-out {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.3);
+}
+
+/* 떠다니는 동그라미 */
+.floating-orb {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;  /* body(z-index:10)보다 낮게 */
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease;
+  filter: blur(2px);
+}
 </style>
 
 <style scoped>

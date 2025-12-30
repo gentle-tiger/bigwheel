@@ -49,25 +49,51 @@
       <!-- 게임 시작 후 빅휠 섹션 -->
       <section v-else class="game-section">
         <div class="wheel-container">
-          <!-- 빅휠 SVG (항상 표시) -->
+          <!-- 빅휠 SVG (화려한 네온 스타일) -->
           <svg
-            width="300"
-            height="300"
+            class="wheel-svg"
+            width="100"
+            height="100"
             viewBox="0 0 200 200"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <circle cx="100" cy="100" r="95" fill="url(#wheelGradient)" stroke="#333" stroke-width="3"/>
             <defs>
-              <linearGradient id="wheelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+              <linearGradient id="neonWheelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ff2d7b;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#9945ff;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#00d9ff;stop-opacity:1" />
               </linearGradient>
+              <filter id="wheelGlow">
+                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <filter id="innerGlow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
             </defs>
-            <line x1="100" y1="5" x2="100" y2="195" stroke="#fff" stroke-width="2"/>
-            <line x1="5" y1="100" x2="195" y2="100" stroke="#fff" stroke-width="2"/>
-            <line x1="30" y1="30" x2="170" y2="170" stroke="#fff" stroke-width="1.5"/>
-            <line x1="170" y1="30" x2="30" y2="170" stroke="#fff" stroke-width="1.5"/>
-            <circle cx="100" cy="100" r="15" fill="#fff"/>
+            <!-- 외곽 글로우 원 -->
+            <circle cx="100" cy="100" r="95" fill="none" stroke="url(#neonWheelGradient)" stroke-width="4" filter="url(#wheelGlow)"/>
+            <!-- 중간 원 -->
+            <circle cx="100" cy="100" r="75" fill="none" stroke="url(#neonWheelGradient)" stroke-width="2.5" opacity="0.7"/>
+            <!-- 내부 원 -->
+            <circle cx="100" cy="100" r="55" fill="none" stroke="url(#neonWheelGradient)" stroke-width="1.5" opacity="0.5"/>
+            <!-- 십자 구분선 -->
+            <line x1="100" y1="5" x2="100" y2="195" stroke="#00d9ff" stroke-width="1.5" opacity="0.8"/>
+            <line x1="5" y1="100" x2="195" y2="100" stroke="#ff2d7b" stroke-width="1.5" opacity="0.8"/>
+            <!-- 대각선 구분선 -->
+            <line x1="30" y1="30" x2="170" y2="170" stroke="#9945ff" stroke-width="1" opacity="0.6"/>
+            <line x1="170" y1="30" x2="30" y2="170" stroke="#9945ff" stroke-width="1" opacity="0.6"/>
+            <!-- 중앙 그라데이션 원 -->
+            <circle cx="100" cy="100" r="18" fill="url(#neonWheelGradient)" filter="url(#innerGlow)"/>
+            <!-- 중앙 작은 흰색 원 -->
+            <circle cx="100" cy="100" r="6" fill="#fff"/>
           </svg>
 
           <!-- 게임 결과 표시 (빅휠 왼쪽) -->
@@ -160,41 +186,55 @@
         <div v-if="totalBettedAmount > 0" class="probability-box">
           <h3 class="probability-title">베팅 분석</h3>
 
-          <!-- 각 구역별 손익 -->
-          <div class="probability-items">
+          <!-- 7개 구역 가로 배치 (베팅 구역과 1:1 매핑) -->
+          <div class="analysis-zones-row">
             <div
-              v-for="zone in bettedZonesAnalysis"
-              :key="zone.name"
-              class="probability-item"
-              :class="{ 'profit': zone.isProfit, 'loss': !zone.isProfit }"
+              v-for="zone in zones"
+              :key="zone.id"
+              class="analysis-zone-item"
+              :class="[
+                zone.id,
+                {
+                  'has-bet': bets[zone.id] > 0,
+                  'is-profit': getZoneAnalysis(zone.id)?.isProfit,
+                  'is-loss': getZoneAnalysis(zone.id) && !getZoneAnalysis(zone.id)?.isProfit,
+                  'cancel-mode': cancelTargetZone === zone.id
+                }
+              ]"
+              @click="toggleCancelMode(zone.id)"
             >
-              <span class="prob-icon">{{ zone.icon }}</span>
-              <span class="prob-name">{{ zone.name }}</span>
-              <span class="prob-percent">{{ zone.probability.toFixed(2) }}%</span>
-              <span class="prob-profit" :class="{ 'positive': zone.isProfit, 'negative': !zone.isProfit }">
-                {{ zone.profit >= 0 ? '+' : '' }}{{ Math.floor(zone.profit / 10000) }}만
+              <div class="analysis-icon">{{ zone.icon }}</div>
+              <div v-if="bets[zone.id] > 0" class="analysis-details">
+                <div class="analysis-bet">{{ formatAmount(bets[zone.id]) }}</div>
+                <div class="analysis-profit" :class="{ 'positive': getZoneAnalysis(zone.id)?.isProfit, 'negative': !getZoneAnalysis(zone.id)?.isProfit }">
+                  {{ getZoneAnalysis(zone.id)?.profit >= 0 ? '+' : '' }}{{ formatAmount(getZoneAnalysis(zone.id)?.profit || 0) }}
+                </div>
+              </div>
+              <div v-else class="analysis-empty">-</div>
+              <!-- 취소 버튼 (클릭 시 표시) -->
+              <div v-if="cancelTargetZone === zone.id && bets[zone.id] > 0" class="cancel-overlay" @click.stop="cancelZoneBet(zone.id)">
+                <span class="cancel-icon">✕</span>
+                <span class="cancel-text">취소</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 수익/손실 확률 & 기대 수익 -->
+          <div class="probability-footer">
+            <div class="prob-stat profit-stat">
+              <span class="stat-label">수익</span>
+              <span class="stat-value">{{ profitProbability.toFixed(1) }}%</span>
+            </div>
+            <div class="prob-stat expected-stat">
+              <span class="stat-label">기대값</span>
+              <span class="stat-value" :class="{ 'positive': expectedProfit >= 0, 'negative': expectedProfit < 0 }">
+                {{ expectedProfit >= 0 ? '+' : '' }}{{ formatAmount(expectedProfit) }}
               </span>
             </div>
-          </div>
-
-          <!-- 수익/손실 확률 -->
-          <div class="probability-summary">
-            <div class="summary-item profit-item">
-              <span>수익 확률</span>
-              <strong>{{ profitProbability.toFixed(2) }}%</strong>
+            <div class="prob-stat loss-stat">
+              <span class="stat-label">손실</span>
+              <span class="stat-value">{{ lossProbability.toFixed(1) }}%</span>
             </div>
-            <div class="summary-item loss-item">
-              <span>손실 확률</span>
-              <strong>{{ lossProbability.toFixed(2) }}%</strong>
-            </div>
-          </div>
-
-          <!-- 기대 수익 -->
-          <div class="expected-profit">
-            <span>기대 수익</span>
-            <strong :class="{ 'positive': expectedProfit >= 0, 'negative': expectedProfit < 0 }">
-              {{ expectedProfit >= 0 ? '+' : '' }}{{ Math.floor(expectedProfit / 10000).toLocaleString() }}만원
-            </strong>
           </div>
         </div>
       </section>
@@ -310,6 +350,9 @@ const showChipSelector = ref(false)
 const selectedZone = ref(null)
 const tempBets = ref({}) // 임시 베팅 (완료 전)
 
+// 개별 베팅 취소 상태
+const cancelTargetZone = ref(null)
+
 // 칩 종류 정의
 const chipTypes = [
   { value: 1000, label: '1천원', key: 'chip1000', color: '#E8749B', strokeColor: '#C94A7A', displayValue: '1천', unit: '원' },
@@ -352,6 +395,7 @@ const bettedZonesAnalysis = computed(() => {
         const probability = (zone.slots / totalSlots) * 100
 
         result.push({
+          id: zoneId,
           name: zone.name,
           icon: zone.icon,
           probability: probability,
@@ -384,6 +428,65 @@ const expectedProfit = computed(() => {
   return bettedZonesAnalysis.value
     .reduce((sum, z) => sum + (z.probability / 100) * z.profit, 0)
 })
+
+// 구역별 분석 데이터 가져오기
+const getZoneAnalysis = (zoneId) => {
+  return bettedZonesAnalysis.value.find(z => z.id === zoneId)
+}
+
+// 금액 포맷팅 (만원 단위)
+const formatAmount = (amount) => {
+  const absAmount = Math.abs(amount)
+  if (absAmount >= 10000) {
+    return Math.floor(amount / 10000) + '만'
+  }
+  return amount.toLocaleString()
+}
+
+// 취소 모드 토글
+const toggleCancelMode = (zoneId) => {
+  // 베팅이 없는 구역이면 무시
+  if (bets.value[zoneId] <= 0) return
+  // 베팅 종료 후에는 취소 불가
+  if (bettingClosed.value) return
+
+  if (cancelTargetZone.value === zoneId) {
+    cancelTargetZone.value = null
+  } else {
+    cancelTargetZone.value = zoneId
+  }
+}
+
+// 특정 구역 베팅 취소
+const cancelZoneBet = (zoneId) => {
+  const amount = bets.value[zoneId]
+  if (amount <= 0) return
+
+  // 베팅 금액을 칩으로 환불
+  let remainingAmount = amount
+  const chipValues = [
+    { key: 'chip1000000', value: 1000000 },
+    { key: 'chip100000', value: 100000 },
+    { key: 'chip10000', value: 10000 },
+    { key: 'chip5000', value: 5000 },
+    { key: 'chip1000', value: 1000 }
+  ]
+
+  for (const chip of chipValues) {
+    if (remainingAmount >= chip.value) {
+      const count = Math.floor(remainingAmount / chip.value)
+      currentChips.value[chip.key] += count
+      remainingAmount -= count * chip.value
+    }
+  }
+
+  // 베팅 초기화
+  bets.value[zoneId] = 0
+  cancelTargetZone.value = null
+
+  // localStorage에 칩 정보 저장
+  localStorage.setItem('userChips', JSON.stringify(currentChips.value))
+}
 
 // 게임 시작
 const startGame = () => {
@@ -669,26 +772,34 @@ onMounted(() => {
 
 <style scoped>
 .bigwheel-page {
-  min-height: calc(100vh - 200px);
-  padding-bottom: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: linear-gradient(180deg, #0d1117 0%, #0a1628 100%);
 }
 
 .main-content {
-  padding: 0 0.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0.35rem;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .page-header {
   position: sticky;
-  top: 52px;
+  top: 0;
   z-index: 100;
-  padding: 0.625rem 1rem;
+  padding: 0.3rem 0.75rem;
   transition: all 0.3s;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  min-height: 32px;
 }
 
 .page-header.header-default {
@@ -724,14 +835,14 @@ onMounted(() => {
 .header-status {
   grid-column: 2;
   text-align: center;
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 700;
   margin: 0;
   color: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 /* 모드 배지 */
@@ -740,11 +851,11 @@ onMounted(() => {
   justify-self: end;
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  font-size: 0.875rem;
+  border-radius: 12px;
+  font-size: 0.65rem;
   font-weight: 600;
   color: var(--white);
   backdrop-filter: blur(8px);
@@ -752,7 +863,7 @@ onMounted(() => {
 }
 
 .mode-icon {
-  font-size: 1rem;
+  font-size: 0.75rem;
 }
 
 .mode-text {
@@ -760,8 +871,8 @@ onMounted(() => {
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   display: inline-block;
 }
@@ -792,22 +903,23 @@ onMounted(() => {
 /* 게임 히스토리 바 */
 .history-bar {
   position: sticky;
-  top: calc(52px + 44px);
+  top: 32px;
   background: rgba(13, 17, 23, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 0.5rem;
+  padding: 0.2rem 0.35rem;
   z-index: 99;
   overflow: hidden;
+  max-height: 44px;
 }
 
 .history-scroll {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.25rem;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 0.25rem;
+  padding-bottom: 0.15rem;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
@@ -827,10 +939,10 @@ onMounted(() => {
 
 .history-item {
   flex-shrink: 0;
-  min-width: 80px;
-  padding: 0.4rem 0.5rem;
-  border-radius: 8px;
-  font-size: 0.7rem;
+  min-width: 60px;
+  padding: 0.2rem 0.35rem;
+  border-radius: 6px;
+  font-size: 0.55rem;
   font-weight: 600;
   text-align: center;
   transition: all 0.2s;
@@ -861,9 +973,9 @@ onMounted(() => {
 }
 
 .history-zone {
-  font-size: 0.65rem;
+  font-size: 0.5rem;
   font-weight: 700;
-  margin-bottom: 0.1rem;
+  margin-bottom: 0;
   white-space: nowrap;
 }
 
@@ -876,7 +988,7 @@ onMounted(() => {
 }
 
 .history-amount {
-  font-size: 0.7rem;
+  font-size: 0.55rem;
   font-weight: 700;
 }
 
@@ -889,9 +1001,9 @@ onMounted(() => {
 }
 
 .section-title {
-  font-size: 1rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.2rem;
   text-align: center;
   color: #fff;
 }
@@ -940,35 +1052,42 @@ onMounted(() => {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  padding: 0.75rem;
-  margin-bottom: 0.75rem;
+  border-radius: 10px;
+  padding: 0.35rem;
+  margin-bottom: 0.35rem;
   text-align: center;
   position: relative;
   overflow: visible;
 }
 
 .wheel-container {
-  margin: 0.5rem auto;
+  margin: 0.15rem auto;
   position: relative;
   width: 100px;
   height: 100px;
   display: inline-block;
 }
 
-.wheel-container svg {
+.wheel-svg {
   width: 100px;
   height: 100px;
+  animation: wheelSpin 20s linear infinite;
+  filter: drop-shadow(0 0 15px rgba(153, 69, 255, 0.5));
+}
+
+@keyframes wheelSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* 게임 정보 섹션 */
 .game-info-section {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.35rem;
 }
 
 .info-cards-row {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .info-card {
@@ -977,30 +1096,30 @@ onMounted(() => {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  padding: 0.75rem;
+  border-radius: 8px;
+  padding: 0.35rem;
 }
 
 .info-card h3 {
-  font-size: 0.875rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   text-align: center;
   color: rgba(255, 255, 255, 0.8);
 }
 
 .chip-info, .stats-info {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   justify-content: center;
 }
 
 .info-item, .stat-item {
   flex: 1;
-  padding: 0.5rem;
+  padding: 0.25rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
+  border-radius: 6px;
   text-align: center;
 }
 
@@ -1016,37 +1135,37 @@ onMounted(() => {
 
 .info-item span, .stat-item span {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.5rem;
   color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.1rem;
 }
 
 .info-item strong {
   display: block;
-  font-size: 0.95rem;
+  font-size: 0.7rem;
   color: #ff2d7b;
 }
 
 .stat-item.win strong {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.65rem;
   color: #00ff88;
   font-weight: 700;
 }
 
 .stat-item.loss strong {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.65rem;
   color: #ff3366;
   font-weight: 700;
 }
 
 .stats-total {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+  padding-top: 0.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   font-weight: 700;
 }
 
@@ -1063,20 +1182,20 @@ onMounted(() => {
 /* 베팅 컨트롤 */
 .betting-control {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.35rem;
   align-items: center;
-  margin-top: 1rem;
-  padding-top: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-cancel-betting {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem;
   background: transparent;
   color: rgba(255, 255, 255, 0.5);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-  font-size: 0.875rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
@@ -1092,16 +1211,16 @@ onMounted(() => {
 
 .btn-end-betting {
   flex: 1;
-  padding: 0.75rem 2rem;
+  padding: 0.5rem 1rem;
   background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
   color: #fff;
   border: none;
-  border-radius: 10px;
-  font-size: 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 0 20px rgba(153, 69, 255, 0.4);
+  box-shadow: 0 0 15px rgba(153, 69, 255, 0.4);
 }
 
 .btn-end-betting:hover {
@@ -1111,42 +1230,75 @@ onMounted(() => {
 
 /* 베팅 구역 */
 .zones-section {
+  flex: 1;
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  padding: 0.75rem;
+  border-radius: 10px;
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .zones-row {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
+  gap: 0.2rem;
+  padding: 0.2rem 0;
   flex-wrap: nowrap;
 }
 
 .zone-card {
   background: rgba(10, 10, 15, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 0.35rem 0.4rem;
+  border-radius: 6px;
+  padding: 0.2rem 0.15rem;
   text-align: center;
   transition: all 0.3s;
   cursor: pointer;
   flex: 1;
-  min-width: 50px;
-  max-width: 80px;
+  min-width: 38px;
+  max-width: 48px;
   position: relative;
   transform: translateY(0);
 }
 
 .zone-card:hover:not(.betting-closed):not(.active) {
-  transform: translateY(-8px) scale(1.08);
-  box-shadow: 0 0 20px rgba(153, 69, 255, 0.4);
-  border-color: rgba(153, 69, 255, 0.5);
+  transform: translateY(-4px) scale(1.05);
   z-index: 10;
+}
+
+/* 각 구역별 호버 색상 */
+.zone-card.silver:hover:not(.betting-closed):not(.active) {
+  box-shadow: 0 0 15px rgba(192, 192, 192, 0.5);
+  border-color: #c0c0c0;
+}
+.zone-card.gold:hover:not(.betting-closed):not(.active) {
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+  border-color: #ffd700;
+}
+.zone-card.emerald:hover:not(.betting-closed):not(.active) {
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+  border-color: #00ff88;
+}
+.zone-card.diamond:hover:not(.betting-closed):not(.active) {
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+  border-color: #00d9ff;
+}
+.zone-card.crystal:hover:not(.betting-closed):not(.active) {
+  box-shadow: 0 0 15px rgba(153, 69, 255, 0.5);
+  border-color: #9945ff;
+}
+.zone-card.joker:hover:not(.betting-closed):not(.active) {
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
+  border-color: #ff3366;
+}
+.zone-card.mega:hover:not(.betting-closed):not(.active) {
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+  border-color: #ffcc00;
 }
 
 .zone-card.active {
@@ -1175,41 +1327,42 @@ onMounted(() => {
 }
 
 .zone-icon {
-  font-size: 1rem;
-  margin-bottom: 0.1rem;
+  font-size: 0.85rem;
+  margin-bottom: 0;
+  line-height: 1;
 }
 
 .zone-card h3 {
-  font-size: 0.5rem;
+  font-size: 0.4rem;
   font-weight: 700;
-  margin-bottom: 0.1rem;
-  line-height: 1.2;
+  margin-bottom: 0;
+  line-height: 1.1;
   color: rgba(255, 255, 255, 0.9);
 }
 
 .zone-odds {
-  font-size: 0.55rem;
+  font-size: 0.45rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.6);
 }
 
 .bet-amount {
-  margin-top: 0.3rem;
-  padding: 0.2rem;
+  margin-top: 0.15rem;
+  padding: 0.1rem;
   background: rgba(255, 45, 123, 0.15);
-  border-radius: 4px;
-  font-size: 0.5rem;
+  border-radius: 3px;
+  font-size: 0.4rem;
   font-weight: 700;
   color: #ff2d7b;
 }
 
-.zone-card.silver { border-top: 4px solid #c0c0c0; box-shadow: 0 0 10px rgba(192, 192, 192, 0.3); }
-.zone-card.gold { border-top: 4px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-.zone-card.emerald { border-top: 4px solid #00ff88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.3); }
-.zone-card.diamond { border-top: 4px solid #00d9ff; box-shadow: 0 0 10px rgba(0, 217, 255, 0.3); }
-.zone-card.crystal { border-top: 4px solid #9945ff; box-shadow: 0 0 10px rgba(153, 69, 255, 0.3); }
-.zone-card.joker { border-top: 4px solid #ff3366; box-shadow: 0 0 10px rgba(255, 51, 102, 0.3); }
-.zone-card.mega { border-top: 4px solid #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.3); }
+.zone-card.silver { border-top: 3px solid #c0c0c0; }
+.zone-card.gold { border-top: 3px solid #ffd700; }
+.zone-card.emerald { border-top: 3px solid #00ff88; }
+.zone-card.diamond { border-top: 3px solid #00d9ff; }
+.zone-card.crystal { border-top: 3px solid #9945ff; }
+.zone-card.joker { border-top: 3px solid #ff3366; }
+.zone-card.mega { border-top: 3px solid #ffcc00; }
 
 /* 칩 선택 팝업 */
 .chip-selector-overlay {
@@ -1236,15 +1389,17 @@ onMounted(() => {
   width: 100%;
   max-width: 400px;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(153, 69, 255, 0.2);
-  animation: slideUp 0.25s ease-out;
+  animation: slideUp 0.15s ease-out;
 }
 
 @keyframes slideUp {
   from {
     transform: translateY(100%);
+    opacity: 0;
   }
   to {
     transform: translateY(0);
+    opacity: 1;
   }
 }
 
@@ -1359,29 +1514,29 @@ onMounted(() => {
 /* 결과 표시 오버레이 (빅휠 왼쪽) */
 .result-overlay {
   position: absolute;
-  right: calc(100% + 10px);
+  right: calc(100% + 6px);
   top: 50%;
   transform: translateY(-50%);
-  width: 120px;
+  width: 85px;
   z-index: 50;
   cursor: pointer;
 }
 
 .result-content-compact {
-  background: linear-gradient(135deg, rgba(153, 69, 255, 0.9) 0%, rgba(0, 217, 255, 0.9) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 0.75rem;
-  box-shadow: 0 0 30px rgba(153, 69, 255, 0.5);
+  background: linear-gradient(135deg, rgba(153, 69, 255, 0.95) 0%, rgba(0, 217, 255, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.4rem 0.35rem;
+  box-shadow: 0 0 15px rgba(153, 69, 255, 0.5);
   text-align: center;
 }
 
 .result-zone-name {
-  font-size: 0.875rem;
+  font-size: 0.6rem;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.2rem;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
 .result-amount {
@@ -1389,23 +1544,23 @@ onMounted(() => {
 }
 
 .amount-win {
-  font-size: 1rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #00ff88;
-  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
 }
 
 .amount-lose {
-  font-size: 1rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #ff6b6b;
-  text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+  text-shadow: 0 0 8px rgba(255, 107, 107, 0.5);
 }
 
 .tap-hint {
-  margin-top: 0.5rem;
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.25rem;
+  font-size: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
 }
 
@@ -1430,16 +1585,16 @@ onMounted(() => {
 
 .btn-next-round {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.5rem;
   background: linear-gradient(135deg, #00d9ff 0%, #9945ff 100%);
   color: #fff;
   border: none;
-  border-radius: 10px;
-  font-size: 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
 }
 
 .btn-next-round:hover {
@@ -1449,163 +1604,210 @@ onMounted(() => {
 
 /* 베팅 확률 및 손익 분석 */
 .probability-box {
-  margin-top: 1rem;
-  padding: 0.75rem;
+  margin-top: 0.35rem;
+  padding: 0.35rem;
   background: rgba(153, 69, 255, 0.08);
   border: 1px solid rgba(153, 69, 255, 0.3);
-  border-radius: 12px;
+  border-radius: 6px;
 }
 
 .probability-title {
-  font-size: 0.875rem;
+  font-size: 0.6rem;
   font-weight: 700;
   text-align: center;
   color: #9945ff;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 0 10px rgba(153, 69, 255, 0.5);
+  margin-bottom: 0.25rem;
 }
 
-.probability-items {
+/* 7개 구역 가로 배치 (베팅 구역과 1:1 매핑) */
+.analysis-zones-row {
+  display: flex;
+  gap: 0.15rem;
+  margin-bottom: 0.3rem;
+}
+
+.analysis-zone-item {
+  flex: 1;
+  min-width: 0;
+  padding: 0.2rem 0.1rem;
+  background: rgba(10, 10, 15, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s;
+  cursor: pointer;
+  opacity: 0.4;
+}
+
+.analysis-zone-item.has-bet {
+  opacity: 1;
+}
+
+.analysis-zone-item.has-bet:hover {
+  transform: translateY(-2px);
+}
+
+/* 구역별 테두리 색상 (베팅 구역과 동일) */
+.analysis-zone-item.silver.has-bet { border-color: #c0c0c0; box-shadow: 0 0 8px rgba(192, 192, 192, 0.3); }
+.analysis-zone-item.gold.has-bet { border-color: #ffd700; box-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
+.analysis-zone-item.emerald.has-bet { border-color: #00ff88; box-shadow: 0 0 8px rgba(0, 255, 136, 0.3); }
+.analysis-zone-item.diamond.has-bet { border-color: #00d9ff; box-shadow: 0 0 8px rgba(0, 217, 255, 0.3); }
+.analysis-zone-item.crystal.has-bet { border-color: #9945ff; box-shadow: 0 0 8px rgba(153, 69, 255, 0.3); }
+.analysis-zone-item.joker.has-bet { border-color: #ff3366; box-shadow: 0 0 8px rgba(255, 51, 102, 0.3); }
+.analysis-zone-item.mega.has-bet { border-color: #ffcc00; box-shadow: 0 0 8px rgba(255, 204, 0, 0.3); }
+
+/* 손익에 따른 상단 강조 */
+.analysis-zone-item.is-profit { border-top: 2px solid #00ff88; }
+.analysis-zone-item.is-loss { border-top: 2px solid #ff3366; }
+
+.analysis-icon {
+  font-size: 0.7rem;
+  line-height: 1;
+  margin-bottom: 0.1rem;
+}
+
+.analysis-details {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 0.5rem;
+  gap: 0.05rem;
 }
 
-.probability-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.5rem;
-  background: rgba(10, 10, 15, 0.5);
-  border-radius: 8px;
-  font-size: 0.7rem;
-  border-left: 3px solid transparent;
-  transition: all 0.2s;
-}
-
-.probability-item.profit {
-  border-left-color: #00ff88;
-}
-
-.probability-item.loss {
-  border-left-color: #ff3366;
-}
-
-.prob-icon {
-  font-size: 0.95rem;
-  flex-shrink: 0;
-}
-
-.prob-name {
-  flex: 1;
+.analysis-bet {
+  font-size: 0.45rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
-  font-size: 0.65rem;
 }
 
-.prob-percent {
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.65rem;
-  min-width: 45px;
-  text-align: right;
-}
-
-.prob-profit {
+.analysis-profit {
+  font-size: 0.4rem;
   font-weight: 700;
-  font-size: 0.7rem;
-  min-width: 50px;
-  text-align: right;
 }
 
-.prob-profit.positive {
+.analysis-profit.positive {
   color: #00ff88;
-  text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
 }
 
-.prob-profit.negative {
+.analysis-profit.negative {
   color: #ff3366;
-  text-shadow: 0 0 8px rgba(255, 51, 102, 0.4);
 }
 
-.probability-summary {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+.analysis-empty {
+  font-size: 0.5rem;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.summary-item {
-  flex: 1;
-  padding: 0.4rem;
-  border-radius: 8px;
+/* 취소 오버레이 */
+.cancel-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 51, 102, 0.9);
+  border-radius: 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
+  justify-content: center;
+  gap: 0.1rem;
+  animation: fadeIn 0.15s ease-out;
 }
 
-.summary-item span {
-  font-size: 0.65rem;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cancel-icon {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.cancel-text {
+  font-size: 0.4rem;
   font-weight: 600;
+  color: #fff;
 }
 
-.summary-item strong {
-  font-size: 0.85rem;
+.analysis-zone-item.cancel-mode {
+  transform: scale(1.05);
+  z-index: 5;
+}
+
+/* 수익/손실 확률 & 기대 수익 푸터 */
+.probability-footer {
+  display: flex;
+  gap: 0.2rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid rgba(153, 69, 255, 0.2);
+}
+
+.prob-stat {
+  flex: 1;
+  padding: 0.15rem 0.1rem;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.4rem;
+  font-weight: 600;
+  margin-bottom: 0.05rem;
+}
+
+.stat-value {
+  display: block;
+  font-size: 0.55rem;
   font-weight: 700;
 }
 
-.profit-item {
+.profit-stat {
   background: rgba(0, 255, 136, 0.1);
   border: 1px solid rgba(0, 255, 136, 0.2);
 }
 
-.profit-item span {
-  color: rgba(0, 255, 136, 0.8);
+.profit-stat .stat-label {
+  color: rgba(0, 255, 136, 0.7);
 }
 
-.profit-item strong {
+.profit-stat .stat-value {
   color: #00ff88;
-  text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
 }
 
-.loss-item {
+.loss-stat {
   background: rgba(255, 51, 102, 0.1);
   border: 1px solid rgba(255, 51, 102, 0.2);
 }
 
-.loss-item span {
-  color: rgba(255, 51, 102, 0.8);
+.loss-stat .stat-label {
+  color: rgba(255, 51, 102, 0.7);
 }
 
-.loss-item strong {
+.loss-stat .stat-value {
   color: #ff3366;
-  text-shadow: 0 0 8px rgba(255, 51, 102, 0.4);
 }
 
-.expected-profit {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  border-top: 1px solid rgba(153, 69, 255, 0.3);
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
+.expected-stat {
+  background: rgba(153, 69, 255, 0.1);
+  border: 1px solid rgba(153, 69, 255, 0.2);
 }
 
-.expected-profit strong {
-  font-size: 0.9rem;
-  font-weight: 700;
+.expected-stat .stat-label {
+  color: rgba(153, 69, 255, 0.8);
 }
 
-.expected-profit strong.positive {
+.expected-stat .stat-value {
+  color: #9945ff;
+}
+
+.expected-stat .stat-value.positive {
   color: #00ff88;
-  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
-.expected-profit strong.negative {
+.expected-stat .stat-value.negative {
   color: #ff3366;
-  text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
 }
 </style>

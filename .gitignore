@@ -36,6 +36,10 @@ out/
 ### VS Code ###
 .vscode/
 
+### Environment Variables ###
+.env
+.env.local
+.env.*.local
 
 ### md, json 파일 제외 ###
 *.md

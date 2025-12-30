@@ -95,12 +95,14 @@ const handleModeSelected = (mode) => {
 
 <style scoped>
 .home {
-  min-height: calc(100vh - 130px);
+  flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .hero-section {
-  min-height: calc(100vh - 130px);
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;

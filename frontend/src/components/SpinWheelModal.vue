@@ -7,45 +7,113 @@
       </div>
 
       <div class="wheel-wrapper" :class="{ spinning: isSpinning }">
+        <!-- 외곽 네온 링 -->
+        <div class="neon-ring"></div>
+        <div class="neon-ring ring-2"></div>
+
         <svg
           class="wheel-svg"
-          width="400"
-          height="400"
+          width="320"
+          height="320"
           viewBox="0 0 300 300"
           :style="{ transform: `rotate(${rotation}deg)` }"
         >
-          <!-- 배경 원 -->
-          <circle cx="150" cy="150" r="145" fill="#fff" stroke="#333" stroke-width="3"/>
+          <defs>
+            <!-- 각 구역별 그라데이션 -->
+            <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#e8e8e8" />
+              <stop offset="100%" style="stop-color:#a0a0a0" />
+            </linearGradient>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ffd700" />
+              <stop offset="100%" style="stop-color:#b8860b" />
+            </linearGradient>
+            <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#00ff88" />
+              <stop offset="100%" style="stop-color:#00b359" />
+            </linearGradient>
+            <linearGradient id="diamondGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#00d9ff" />
+              <stop offset="100%" style="stop-color:#0099cc" />
+            </linearGradient>
+            <linearGradient id="crystalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#9945ff" />
+              <stop offset="100%" style="stop-color:#6b21a8" />
+            </linearGradient>
+            <linearGradient id="jokerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ff3366" />
+              <stop offset="100%" style="stop-color:#cc1a4a" />
+            </linearGradient>
+            <linearGradient id="megaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ffcc00" />
+              <stop offset="100%" style="stop-color:#cc9900" />
+            </linearGradient>
+            <linearGradient id="centerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ff2d7b" />
+              <stop offset="50%" style="stop-color:#9945ff" />
+              <stop offset="100%" style="stop-color:#00d9ff" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          <!-- 배경 원 (어두운 색) -->
+          <circle cx="150" cy="150" r="148" fill="#0a0a0f" stroke="url(#centerGrad)" stroke-width="3"/>
 
           <!-- 구역별 색상 섹터 -->
           <g v-for="(sector, index) in sectors" :key="index">
             <path
               :d="createArcPath(sector.startAngle, sector.endAngle)"
-              :fill="sector.color"
-              stroke="#fff"
-              stroke-width="2"
+              :fill="`url(#${sector.id}Grad)`"
+              stroke="rgba(255,255,255,0.3)"
+              stroke-width="1"
+              filter="url(#glow)"
             />
-            <!-- 구역 텍스트 -->
+            <!-- 구역 아이콘 -->
             <text
               :x="getTextX(sector.middleAngle)"
               :y="getTextY(sector.middleAngle)"
               text-anchor="middle"
-              font-size="16"
+              dominant-baseline="middle"
+              :font-size="sector.slots >= 10 ? 24 : sector.slots >= 4 ? 20 : 16"
+              :transform="`rotate(${sector.middleAngle + 90}, ${getTextX(sector.middleAngle)}, ${getTextY(sector.middleAngle)})`"
+            >
+              {{ sector.icon }}
+            </text>
+            <!-- 구역 이름 (큰 섹터에만) -->
+            <text
+              v-if="sector.slots >= 7"
+              :x="getTextX(sector.middleAngle, 60)"
+              :y="getTextY(sector.middleAngle, 60)"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="10"
               font-weight="bold"
-              fill="#fff"
-              :transform="`rotate(${sector.middleAngle}, ${getTextX(sector.middleAngle)}, ${getTextY(sector.middleAngle)})`"
+              fill="rgba(255,255,255,0.9)"
+              :transform="`rotate(${sector.middleAngle + 90}, ${getTextX(sector.middleAngle, 60)}, ${getTextY(sector.middleAngle, 60)})`"
             >
               {{ sector.name }}
             </text>
           </g>
 
+          <!-- 내부 장식 원 -->
+          <circle cx="150" cy="150" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
           <!-- 중앙 원 -->
-          <circle cx="150" cy="150" r="30" fill="#333"/>
-          <circle cx="150" cy="150" r="25" fill="#fff"/>
+          <circle cx="150" cy="150" r="32" fill="url(#centerGrad)" filter="url(#glow)"/>
+          <circle cx="150" cy="150" r="22" fill="#0a0a0f"/>
+          <circle cx="150" cy="150" r="8" fill="#fff"/>
         </svg>
 
         <!-- 포인터 (위쪽 고정) -->
-        <div class="pointer"></div>
+        <div class="pointer">
+          <div class="pointer-glow"></div>
+        </div>
       </div>
 
       <!-- 스핀 버튼 -->
@@ -54,13 +122,14 @@
         class="spin-button"
         @click="startSpin"
       >
-        돌리기
+        <span class="btn-icon">🎯</span>
+        <span>돌리기</span>
       </button>
 
       <!-- 스피닝 상태 표시 -->
       <div v-if="isSpinning" class="spinning-text">
-        <div class="spinner-icon">🎯</div>
-        <p>돌아가는 중...</p>
+        <div class="spinner-icon">✨</div>
+        <p>행운을 빕니다...</p>
       </div>
     </div>
   </div>
@@ -96,29 +165,32 @@ watch(() => props.show, (newVal) => {
   }
 })
 
+// 아이콘 매핑
+const icons = {
+  'silver': '🥈',
+  'gold': '🥇',
+  'emerald': '💚',
+  'diamond': '💎',
+  'crystal': '🔮',
+  'joker': '🃏',
+  'mega': '⭐'
+}
+
 // 섹터 데이터 생성
 const sectors = computed(() => {
   const totalSlots = props.zones.reduce((sum, zone) => sum + zone.slots, 0)
   let currentAngle = 0
-  const colors = {
-    'silver': '#c0c0c0',
-    'gold': '#ffd700',
-    'emerald': '#10b981',
-    'diamond': '#60a5fa',
-    'crystal': '#a78bfa',
-    'joker': '#ef4444',
-    'mega': '#f59e0b'
-  }
 
   return props.zones.map(zone => {
     const slotAngle = (zone.slots / totalSlots) * 360
     const sector = {
       id: zone.id,
       name: zone.name,
+      icon: icons[zone.id] || '🎯',
+      slots: zone.slots,
       startAngle: currentAngle,
       endAngle: currentAngle + slotAngle,
-      middleAngle: currentAngle + slotAngle / 2,
-      color: colors[zone.id] || '#999'
+      middleAngle: currentAngle + slotAngle / 2
     }
     currentAngle += slotAngle
     return sector
@@ -127,14 +199,14 @@ const sectors = computed(() => {
 
 // 호(arc) 경로 생성
 const createArcPath = (startAngle, endAngle) => {
-  const start = polarToCartesian(150, 150, 145, startAngle)
-  const end = polarToCartesian(150, 150, 145, endAngle)
+  const start = polarToCartesian(150, 150, 140, startAngle)
+  const end = polarToCartesian(150, 150, 140, endAngle)
   const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1'
 
   return [
     `M 150 150`,
     `L ${start.x} ${start.y}`,
-    `A 145 145 0 ${largeArcFlag} 1 ${end.x} ${end.y}`,
+    `A 140 140 0 ${largeArcFlag} 1 ${end.x} ${end.y}`,
     `Z`
   ].join(' ')
 }
@@ -149,14 +221,14 @@ const polarToCartesian = (cx, cy, radius, angle) => {
 }
 
 // 텍스트 위치 계산
-const getTextX = (angle) => {
+const getTextX = (angle, distance = 100) => {
   const rad = (angle - 90) * Math.PI / 180
-  return 150 + 100 * Math.cos(rad)
+  return 150 + distance * Math.cos(rad)
 }
 
-const getTextY = (angle) => {
+const getTextY = (angle, distance = 100) => {
   const rad = (angle - 90) * Math.PI / 180
-  return 150 + 100 * Math.sin(rad)
+  return 150 + distance * Math.sin(rad)
 }
 
 // 스핀 시작
@@ -175,8 +247,8 @@ const startSpin = () => {
   setTimeout(() => {
     isSpinning.value = false
 
-    // 최종 회전 각도 (0~360)
-    const finalAngle = rotation.value % 360
+    // 최종 회전 각도 (0~360) - 포인터는 위쪽(0도)에 있으므로 360에서 빼기
+    const finalAngle = (360 - (rotation.value % 360)) % 360
 
     // 어떤 섹터에 멈췄는지 찾기
     const resultSector = sectors.value.find(sector => {
@@ -200,12 +272,12 @@ const startSpin = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at center, rgba(26, 10, 46, 0.95) 0%, rgba(10, 10, 15, 0.98) 100%);
+  background: radial-gradient(ellipse at center, rgba(26, 10, 46, 0.98) 0%, rgba(10, 10, 15, 0.99) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
 @keyframes fadeIn {
@@ -217,12 +289,12 @@ const startSpin = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
-  animation: scaleIn 0.4s ease-out;
+  gap: 20px;
+  animation: scaleIn 0.3s ease-out;
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.8); opacity: 0; }
+  from { transform: scale(0.9); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
 
@@ -232,19 +304,18 @@ const startSpin = () => {
 }
 
 .modal-title {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 50%, #00d9ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: none;
   filter: drop-shadow(0 0 20px rgba(153, 69, 255, 0.5));
 }
 
 .modal-subtitle {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -252,84 +323,146 @@ const startSpin = () => {
   position: relative;
   width: 320px;
   height: 320px;
-  filter: drop-shadow(0 0 40px rgba(153, 69, 255, 0.4));
+}
+
+/* 외곽 네온 링 */
+.neon-ring {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, #ff2d7b, #9945ff, #00d9ff, #ff2d7b) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: ringRotate 4s linear infinite;
+  opacity: 0.8;
+}
+
+.neon-ring.ring-2 {
+  top: -16px;
+  left: -16px;
+  right: -16px;
+  bottom: -16px;
+  opacity: 0.4;
+  animation: ringRotate 6s linear infinite reverse;
+}
+
+@keyframes ringRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .wheel-wrapper::before {
   content: '';
   position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  bottom: -20px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 45, 123, 0.3) 0%, rgba(153, 69, 255, 0.3) 50%, rgba(0, 217, 255, 0.3) 100%);
+  background: radial-gradient(circle, rgba(153, 69, 255, 0.3) 0%, transparent 70%);
   z-index: -1;
   animation: glowPulse 2s ease-in-out infinite;
 }
 
 @keyframes glowPulse {
   0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.02); }
+  50% { opacity: 1; transform: scale(1.05); }
 }
 
 .wheel-svg {
   width: 100%;
   height: 100%;
   transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+  filter: drop-shadow(0 0 20px rgba(153, 69, 255, 0.4));
 }
 
 .wheel-wrapper.spinning .wheel-svg {
-  transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+  filter: drop-shadow(0 0 40px rgba(153, 69, 255, 0.6));
+}
+
+.wheel-wrapper.spinning .neon-ring {
+  animation: ringRotate 0.5s linear infinite;
+  opacity: 1;
+}
+
+.wheel-wrapper.spinning .neon-ring.ring-2 {
+  animation: ringRotate 0.3s linear infinite reverse;
 }
 
 .wheel-wrapper.spinning::before {
-  animation: glowSpin 0.5s linear infinite;
+  animation: glowSpin 0.3s linear infinite;
 }
 
 @keyframes glowSpin {
-  0% { opacity: 0.3; }
+  0% { opacity: 0.5; }
   50% { opacity: 1; }
-  100% { opacity: 0.3; }
+  100% { opacity: 0.5; }
 }
 
 .pointer {
   position: absolute;
-  top: -15px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 18px solid transparent;
-  border-right: 18px solid transparent;
-  border-top: 32px solid #ff2d7b;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 30px solid #ff2d7b;
   z-index: 10;
-  filter: drop-shadow(0 0 15px rgba(255, 45, 123, 0.8));
+  filter: drop-shadow(0 0 10px rgba(255, 45, 123, 0.8));
+}
+
+.pointer-glow {
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, rgba(255, 45, 123, 0.6) 0%, transparent 70%);
+  animation: pointerGlow 1s ease-in-out infinite;
+}
+
+@keyframes pointerGlow {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.3); }
 }
 
 .spin-button {
-  padding: 14px 40px;
-  background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 36px;
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 100%);
   color: white;
   border: none;
   border-radius: 14px;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 0 30px rgba(153, 69, 255, 0.5);
+  box-shadow: 0 0 30px rgba(255, 45, 123, 0.5);
   transition: all 0.3s;
-  animation: pulse 2s ease-in-out infinite;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: btnPulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(153, 69, 255, 0.5); }
-  50% { transform: scale(1.03); box-shadow: 0 0 50px rgba(153, 69, 255, 0.8); }
+.btn-icon {
+  font-size: 1.3rem;
+}
+
+@keyframes btnPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 45, 123, 0.5); }
+  50% { transform: scale(1.02); box-shadow: 0 0 50px rgba(255, 45, 123, 0.7); }
 }
 
 .spin-button:hover {
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 0 50px rgba(153, 69, 255, 0.8), 0 0 80px rgba(0, 217, 255, 0.4);
+  box-shadow: 0 0 50px rgba(255, 45, 123, 0.8), 0 0 80px rgba(153, 69, 255, 0.4);
 }
 
 .spin-button:active {
@@ -340,32 +473,31 @@ const startSpin = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   color: white;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
 .spinning-text p {
-  background: linear-gradient(135deg, #9945ff 0%, #00d9ff 100%);
+  background: linear-gradient(135deg, #ff2d7b 0%, #9945ff 50%, #00d9ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .spinner-icon {
-  font-size: 2.5rem;
-  animation: rotate 1.5s linear infinite;
-  filter: drop-shadow(0 0 15px rgba(153, 69, 255, 0.6));
+  font-size: 2rem;
+  animation: sparkle 0.8s ease-in-out infinite;
 }
 
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes sparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
 }
 
 /* 반응형 - 모바일 */
-@media (max-width: 640px) {
+@media (max-width: 400px) {
   .wheel-wrapper {
     width: 280px;
     height: 280px;
@@ -376,18 +508,18 @@ const startSpin = () => {
   }
 
   .modal-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   .spin-button {
-    padding: 12px 32px;
-    font-size: 1.1rem;
+    padding: 12px 28px;
+    font-size: 1rem;
   }
 
   .pointer {
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 28px solid #ff2d7b;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 26px solid #ff2d7b;
   }
 }
 </style>

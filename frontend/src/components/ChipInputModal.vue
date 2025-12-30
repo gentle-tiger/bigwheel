@@ -33,12 +33,25 @@
           <div class="chips-input-grid">
             <div v-for="chipType in chipTypes" :key="chipType" class="chip-input">
               <label>{{ formatChipType(chipType) }}</label>
-              <input
-                type="number"
-                v-model.number="addChips[chipType]"
-                min="0"
-                placeholder="0"
-              />
+              <div class="input-stepper">
+                <button class="stepper-btn minus" @click="decrementChip(chipType)" :disabled="addChips[chipType] <= 0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 12H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                  </svg>
+                </button>
+                <input
+                  type="number"
+                  v-model.number="addChips[chipType]"
+                  min="0"
+                  placeholder="0"
+                  @input="validateInput(chipType)"
+                />
+                <button class="stepper-btn plus" @click="incrementChip(chipType)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -167,15 +180,36 @@ const formatChipType = (type) => {
   const value = type.replace('CHIP_', '')
   return `${Number(value).toLocaleString()}원`
 }
+
+// 칩 증가
+const incrementChip = (chipType) => {
+  addChips.value[chipType] = (addChips.value[chipType] || 0) + 1
+}
+
+// 칩 감소
+const decrementChip = (chipType) => {
+  if (addChips.value[chipType] > 0) {
+    addChips.value[chipType]--
+  }
+}
+
+// 입력 유효성 검사
+const validateInput = (chipType) => {
+  if (addChips.value[chipType] < 0 || isNaN(addChips.value[chipType])) {
+    addChips.value[chipType] = 0
+  }
+}
 </script>
 
 <style scoped>
 .modal-overlay {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 400px;  /* 앱 컨테이너 너비 */
+  height: 100%;
   background: rgba(0, 0, 0, 0.85);
   display: flex;
   justify-content: center;
@@ -195,12 +229,12 @@ const formatChipType = (type) => {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 204, 0, 0.2);
-  border-radius: 20px;
+  border-radius: 16px;
   width: 100%;
-  max-width: 420px;
-  max-height: 85vh;
+  max-width: 360px;  /* 더 컴팩트하게 */
+  max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 0 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 204, 0, 0.15);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 204, 0, 0.15);
   animation: slideUp 0.3s ease-out;
 }
 
@@ -213,19 +247,19 @@ const formatChipType = (type) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.5rem;
+  padding: 0.875rem 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
   background: rgba(13, 17, 23, 0.98);
   backdrop-filter: blur(20px);
   z-index: 1;
-  border-radius: 20px 20px 0 0;
+  border-radius: 16px 16px 0 0;
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   background: linear-gradient(135deg, #ffcc00 0%, #ff9500 100%);
   -webkit-background-clip: text;
@@ -254,21 +288,21 @@ const formatChipType = (type) => {
 }
 
 .modal-body {
-  padding: 1.25rem 1.5rem;
+  padding: 0.75rem 1rem;
 }
 
 .current-chips-section,
 .add-chips-section,
 .preview-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .current-chips-section h3,
 .add-chips-section h3,
 .preview-section h3 {
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -276,22 +310,22 @@ const formatChipType = (type) => {
 
 .loading {
   text-align: center;
-  padding: 20px;
+  padding: 12px;
   color: rgba(255, 255, 255, 0.4);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 
 .chips-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 6px;
 }
 
 .chip-display {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 12px;
-  border-radius: 12px;
+  padding: 8px;
+  border-radius: 8px;
   text-align: center;
   transition: all 0.2s;
 }
@@ -310,15 +344,15 @@ const formatChipType = (type) => {
 
 .chip-type {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   font-weight: 500;
 }
 
 .chip-count {
   display: block;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #ffcc00;
   text-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
@@ -331,27 +365,82 @@ const formatChipType = (type) => {
 
 .chips-input-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
 }
 
 .chip-input label {
   display: block;
-  font-size: 0.75rem;
-  margin-bottom: 6px;
+  font-size: 0.65rem;
+  margin-bottom: 4px;
   color: rgba(255, 255, 255, 0.5);
   font-weight: 500;
 }
 
-.chip-input input {
-  width: 100%;
-  padding: 10px 12px;
+/* 커스텀 Stepper Input */
+.input-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  font-size: 0.95rem;
-  color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
   transition: all 0.2s;
+}
+
+.stepper-btn:hover:not(:disabled) {
+  color: #ffcc00;
+  background: rgba(255, 204, 0, 0.15);
+}
+
+.stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.stepper-btn.minus:hover:not(:disabled) {
+  color: #ff3366;
+  background: rgba(255, 51, 102, 0.15);
+}
+
+.stepper-btn.plus:hover:not(:disabled) {
+  color: #00ff88;
+  background: rgba(0, 255, 136, 0.15);
+}
+
+.chip-input input {
+  flex: 1;
+  width: 100%;
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.85rem;
+  color: #fff;
+  text-align: center;
+  transition: all 0.2s;
+  /* 기본 스피너 숨기기 */
+  -moz-appearance: textfield;
+}
+
+.chip-input input::-webkit-outer-spin-button,
+.chip-input input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .chip-input input::placeholder {
@@ -360,29 +449,32 @@ const formatChipType = (type) => {
 
 .chip-input input:focus {
   outline: none;
-  border-color: #ffcc00;
-  box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
   background: rgba(255, 204, 0, 0.05);
+}
+
+.input-stepper:focus-within {
+  border-color: #ffcc00;
+  box-shadow: 0 0 12px rgba(255, 204, 0, 0.2);
 }
 
 .modal-footer {
   display: flex;
-  gap: 10px;
-  padding: 1.25rem 1.5rem;
+  gap: 8px;
+  padding: 0.75rem 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   bottom: 0;
   background: rgba(13, 17, 23, 0.98);
   backdrop-filter: blur(20px);
-  border-radius: 0 0 20px 20px;
+  border-radius: 0 0 16px 16px;
 }
 
 .button {
   flex: 1;
-  padding: 12px;
+  padding: 10px;
   border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;

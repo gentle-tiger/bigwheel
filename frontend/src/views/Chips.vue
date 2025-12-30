@@ -15,25 +15,38 @@
         <div class="chips-grid">
           <div v-for="chip in chipsList" :key="chip.key" class="chip-item">
             <!-- 칩 아이콘 (SVG) -->
-            <svg class="chip-svg" width="60" height="60" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <svg class="chip-svg" width="45" height="45" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
               <circle cx="60" cy="60" r="58" :fill="chip.color" :stroke="chip.strokeColor" stroke-width="2"/>
               <circle cx="60" cy="60" r="54" fill="none" :stroke="chip.strokeColor" stroke-width="8" stroke-dasharray="8 4"/>
               <circle cx="60" cy="60" r="38" fill="#FFFFFF"/>
               <text x="60" y="63" font-family="Arial, sans-serif" font-size="16" font-weight="bold" :fill="chip.strokeColor" text-anchor="middle">{{ chip.displayValue }}</text>
             </svg>
 
-            <!-- 입력 필드 -->
-            <input
-              v-model.number="chips[chip.key]"
-              type="number"
-              min="0"
-              class="chip-input"
-              :placeholder="chip.label"
-            />
+            <!-- 커스텀 Stepper 입력 -->
+            <div class="input-stepper">
+              <button class="stepper-btn minus" @click="decrementChip(chip.key)" :disabled="chips[chip.key] <= 0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <input
+                v-model.number="chips[chip.key]"
+                type="number"
+                min="0"
+                class="chip-input"
+                :placeholder="chip.label"
+                @input="validateInput(chip.key)"
+              />
+              <button class="stepper-btn plus" @click="incrementChip(chip.key)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
 
             <!-- 금액 표시 -->
             <div class="chip-value">
-              {{ (chip.value * chips[chip.key]).toLocaleString() }}원
+              {{ (chip.value * (chips[chip.key] || 0)).toLocaleString() }}원
             </div>
           </div>
         </div>
@@ -98,6 +111,25 @@ const saveChips = () => {
   toastMessage.value = '칩 정보가 저장되었습니다!'
   toastType.value = 'success'
   showToast.value = true
+}
+
+// 칩 증가
+const incrementChip = (chipKey) => {
+  chips.value[chipKey] = (chips.value[chipKey] || 0) + 1
+}
+
+// 칩 감소
+const decrementChip = (chipKey) => {
+  if (chips.value[chipKey] > 0) {
+    chips.value[chipKey]--
+  }
+}
+
+// 입력 유효성 검사
+const validateInput = (chipKey) => {
+  if (chips.value[chipKey] < 0 || isNaN(chips.value[chipKey])) {
+    chips.value[chipKey] = 0
+  }
 }
 
 // 페이지 로드 시 칩 정보 불러오기
@@ -193,24 +225,81 @@ onMounted(() => {
   filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
 }
 
+/* 커스텀 Stepper */
+.input-stepper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background: rgba(10, 10, 15, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.stepper-btn:hover:not(:disabled) {
+  color: #ffcc00;
+  background: rgba(255, 204, 0, 0.15);
+}
+
+.stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.stepper-btn.minus:hover:not(:disabled) {
+  color: #ff3366;
+  background: rgba(255, 51, 102, 0.15);
+}
+
+.stepper-btn.plus:hover:not(:disabled) {
+  color: #00ff88;
+  background: rgba(0, 255, 136, 0.15);
+}
+
 .chip-input {
   flex: 1;
-  padding: 0.5rem 0.75rem;
-  background: rgba(10, 10, 15, 0.6);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 1rem;
   font-weight: 600;
   text-align: center;
   color: #fff;
   transition: all 0.3s;
   min-width: 0;
+  /* 스피너 숨기기 */
+  -moz-appearance: textfield;
+}
+
+.chip-input::-webkit-outer-spin-button,
+.chip-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .chip-input:focus {
   outline: none;
+  background: rgba(255, 204, 0, 0.05);
+}
+
+.input-stepper:focus-within {
   border-color: #ffcc00;
-  box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+  box-shadow: 0 0 12px rgba(255, 204, 0, 0.3);
 }
 
 .chip-input::placeholder {
@@ -218,11 +307,11 @@ onMounted(() => {
 }
 
 .chip-value {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #ffcc00;
   white-space: nowrap;
-  min-width: 70px;
+  min-width: 60px;
   text-align: right;
   text-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
 }
